@@ -15,9 +15,9 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
       if (m.isGroup &&!isAdmin) { global.dfail('admin', m, conn); fail = true; break }
       chat.bienvenida = isEnable
       break
-    case 'detector':
+    case 'detect':
       if (m.isGroup &&!isAdmin) { global.dfail('admin', m, conn); fail = true; break }
-      chat.detector = isEnable
+      chat.detect = isEnable
       break
     case 'subbots': case 'serbot':
       if (!isROwner) { global.dfail('rowner', m, conn); fail = true; break }
@@ -86,8 +86,8 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
   }
 }
 
-handler.help = ['welcome', 'detector', 'antilink', 'antibot', 'modoadmin', 'subbots', 'nsfw', 'audios', 'antiprivado'].map(v => v + ' on/off')
+handler.help = ['welcome', 'detect', 'antilink', 'antibot', 'modoadmin', 'subbots', 'nsfw', 'audios', 'antiprivado'].map(v => v + ' on/off')
 handler.tags = ['config']
-handler.command = ['welcome', 'bienvenida', 'detector', 'subbots', 'serbot', 'antispam', 'antilink', 'antibot', 'modoadmin', 'nsfw', 'antinopor', 'audios', 'autoleer', 'autoread', 'antiprivado']
+handler.command = ['welcome', 'bienvenida', 'detect', 'subbots', 'serbot', 'antispam', 'antilink', 'antibot', 'modoadmin', 'nsfw', 'antinopor', 'audios', 'autoleer', 'autoread', 'antiprivado']
 
 export default handler
