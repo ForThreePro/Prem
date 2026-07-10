@@ -1,7 +1,7 @@
 let handler = async (m) => {
     let _uptime = process.uptime() * 1000
     let uptime = clockString(_uptime)
-    m.reply(`Tiempo activo: ${uptime}`)
+    m.reply(`⛈️ *RAYO PREM* ➔ Tiempo activo\n⚡ *Online:* ${uptime}\n🌙 *Estado:* El trueno no duerme`) // Cambiado
 }
 function clockString(ms) {
     let d = Math.floor(ms / 86400000)
