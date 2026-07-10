@@ -4,7 +4,7 @@ import { readFileSync } from 'fs'
 let handler = async (m, { conn, usedPrefix }) => {
   let taguser = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : m.sender
   
-  const img = readFileSync(join(process.cwd(), 'storage', 'img', 'catalogo.png'))
+  const img = readFileSync(join(process.cwd(), 'storage', 'img', 'rayo.jpg'))
   
   let menuText = `🛸 *[ BOX BOT MD ]* 🌌\n\n`
   menuText += `👤 *Usuario:* @${taguser.split('@')[0]}\n`
