@@ -1,65 +1,35 @@
 import ytSearch from 'yt-search'
 
 let handler = async (m, { conn, text }) => {
-    if (!text) return m.reply(`⚡ *RAYO PREM* | BUSCADOR
+    if (!text) return m.reply('✨ *Nox Bot 🌃*\n¿Qué quieres buscar?')
     
-╭─〔 *Team Nightwish* 〕─╮
-│ 📌 *Uso:* .google <texto>
-│ 🔎 *Ejemplo:* .google kpop nightwish
-╰──────────────────────╯
-    
-> "El trueno encuentra lo que buscas"`)
-
-    await m.react('⚡')
+    await m.react('🔍')
     
     try {
         let search = await ytSearch(text)
         let results = search.videos.slice(0, 5)
         
-        if (!results.length) return m.reply('🌙 *Rayo Prem* | No se encontró nada con ese trueno.')
+        if (!results.length) return m.reply('❌ No encontré resultados.')
 
-        let txt = `⚡ *RAYO PREM* | RESULTADOS ⚡
-╭─〔 *Team Nightwish* 〕─╮
-│ 🔎 *Busqueda:* ${text}
-│ 📊 *Encontrados:* ${results.length}
-╰──────────────────────╯\n\n`
+        let txt = `*Nox Bot 🌃 - Buscador*\n`
+        txt += `_Consultando: ${text}_\n\n`
         
         txt += results.map((v, i) => {
-            return `〔 ${i + 1} 〕 *${v.title}*
-┠⏱️ *Duración:* ${v.timestamp}
-┠👁️ *Vistas:* ${v.views.toLocaleString()}
-┠📅 *Subido:* ${v.ago}
-┗🔗 ${v.url}`
+            return `*${i + 1}. ${v.title}*\n🕒 Duración: ${v.timestamp}\n🔗 ${v.url}`
         }).join('\n\n')
 
-        txt += `\n\n> "Elige el rayo que quieras descargar"`
-
-        await conn.sendMessage(m.chat, {
-            image: { url: 'https://files.catbox.moe/8z7k9w.jpg' }, // Banner Nightwish
-            caption: txt,
-            contextInfo: {
-                forwardingScore: 999,
-                isForwarded: true,
-                externalAdReply: {
-                    title: 'RAYO PREM - BUSCADOR',
-                    body: 'Team Nightwish | Buscador Oficial',
-                    thumbnail: { url: 'https://files.catbox.moe/8z7k9w.jpg' },
-                    sourceUrl: 'https://youtube.com'
-                }
-            }
-        }, { quoted: m })
-
+        await conn.reply(m.chat, txt, m)
         await m.react('✅')
         
     } catch (e) {
         console.error(e)
         await m.react('❌')
-        m.reply('⛈️ *Rayo Prem* | Error en la conexión. Intenta de nuevo.')
+        m.reply('⚠️ *Error:* No se pudo realizar la búsqueda.')
     }
 }
 
 handler.help = ['google <busqueda>']
 handler.tags = ['search']
-handler.command = /^google|gsearch$/i
+handler.command = /^google$/i
 
 export default handler

@@ -6,7 +6,7 @@ let handler = async (m) => {
     const used = process.memoryUsage()
     let cpu = os.loadavg()[0].toFixed(2)
 
-    let info = `*Sistema*
+    let info = `*Reporte de Sistema*
 
 Uptime: ${muptime}
 Memoria RAM: ${(used.heapUsed / 1024 / 1024).toFixed(2)} MB

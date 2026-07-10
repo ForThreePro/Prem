@@ -1,44 +1,26 @@
 let handler = async (m, { conn, args, usedPrefix, command }) => {
     let isClose = {
         'abrir': 'not_announcement',
-        'open': 'not_announcement',
         'cerrar': 'announcement',
-        'close': 'announcement',
-    }[(args[0] || '').toLowerCase()]
+    }[(args[0] || '')]
 
     if (isClose === undefined) {
-        await conn.reply(m.chat, `⚡ *RAYO PREM* | CONTROL DE GRUPO
-
-╭─〔 *Team Nightwish* 〕─╮
-│ 📌 *Uso:* ${usedPrefix}${command} abrir/cerrar
-│ ⚡ *Ejemplo:* ${usedPrefix}${command} cerrar
-╰──────────────────────╯
-
-> "El trueno decide quien habla"`, m)
+        await conn.reply(m.chat, `⚠️ Elija una opción.\n\n*${usedPrefix + command}* abrir\n*${usedPrefix + command}* cerrar`, m)
         return
     }
 
     await conn.groupSettingUpdate(m.chat, isClose)
 
-    let estado = isClose === 'announcement'? 'CERRADO 🔒' : 'ABIERTO 🔓'
-    let desc = isClose === 'announcement'? 'Solo admins pueden enviar mensajes' : 'Todos pueden enviar mensajes'
-    let emoji = isClose === 'announcement'? '⛈️' : '⚡'
-
-    await conn.reply(m.chat, `${emoji} *RAYO PREM* | GRUPO ${estado} ${emoji}
-╭─〔 *Team Nightwish* 〕─╮
-│ 📊 *Estado:* ${estado}
-│ 📝 *Nota:* ${desc}
-│ 👑 *Ejecutado por:* @${m.sender.split('@')[0]}
-╰──────────────────────╯
-
-> "El trueno selló el grupo"`, m, {
+    // Aviso de la acción realizada
+    let estado = isClose === 'announcement' ? 'cerrado 🔒' : 'abierto 🔓'
+    await conn.reply(m.chat, `🛸 *Grupo actualmente ${estado}*\n> Por: @${m.sender.split('@')[0]}`, m, {
         mentions: [m.sender]
     })
 }
 
 handler.help = ['grupo abrir', 'grupo cerrar']
 handler.tags = ['grupos']
-handler.command = ['group', 'grupo']
+handler.command = ['group', 'grupo'] 
 handler.admin = true
 handler.botAdmin = true
 

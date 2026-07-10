@@ -1,41 +1,21 @@
 let handler = async (m, { conn, participants, usedPrefix, command }) => {
-    let mentionedJid = m.mentionedJid && m.mentionedJid[0]? m.mentionedJid[0] : m.quoted? m.quoted.sender : null
-
-    if (!mentionedJid) return conn.reply(m.chat, `⚡ *RAYO PREM* | EXPULSAR USUARIO
-
-╭─〔 *Team Nightwish* 〕─╮
-│ 📌 *Uso:* ${usedPrefix}${command} @usuario
-│ ⚡ *Ejemplo:* ${usedPrefix}${command} @123456789
-╰──────────────────────╯
-
-> "Menciona o responde al objetivo"`, m)
-
+    let mentionedJid = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : null
+    
+    if (!mentionedJid) return conn.reply(m.chat, `🌃 Debes mencionar a un usuario o responder a un mensaje para poder expulsarlo.`, m)
+    
     try {
         let groupMetadata = await conn.groupMetadata(m.chat)
         let ownerGroup = groupMetadata.owner || m.chat.split`-`[0] + '@s.whatsapp.net'
         let ownerBot = global.owner[0][0] + '@s.whatsapp.net'
-        let nameUser = await conn.getName(mentionedJid)
-
-        if (mentionedJid === conn.user.jid) return conn.reply(m.chat, `🌙 *Rayo Prem* | No puedo auto-destruirme.`, m)
-        if (mentionedJid === ownerGroup) return conn.reply(m.chat, `⛈️ *Rayo Prem* | No puedo expulsar al dueño del grupo.`, m)
-        if (mentionedJid === ownerBot) return conn.reply(m.chat, `⛈️ *Rayo Prem* | No puedo expulsar a mi creador.`, m)
-
+        
+        if (mentionedJid === conn.user.jid) return conn.reply(m.chat, `🤖 No puedo eliminarme a mí mismo.`, m)
+        if (mentionedJid === ownerGroup) return conn.reply(m.chat, `🩸 No puedo eliminar al propietario del grupo.`, m)
+        if (mentionedJid === ownerBot) return conn.reply(m.chat, `🦠 No puedo eliminar al dueño del bot.`, m)
+        
         await conn.groupParticipantsUpdate(m.chat, [mentionedJid], 'remove')
-
-        let msgKick = `⛈️ *RAYO PREM* | EXPULSIÓN ⛈️
-╭─〔 *Team Nightwish* 〕─╮
-│ 🗡️ *Expulsado:* ${nameUser}
-│ 👑 *Ejecutado por:* @${m.sender.split('@')[0]}
-│ ⚡ *Estado:* Eliminado del grupo
-╰──────────────────────╯
-
-> "El trueno lo sacó del grupo"`
-
-        conn.reply(m.chat, msgKick, m, { mentions: [mentionedJid, m.sender] })
-
+        conn.reply(m.chat, `✅ *Usuario expulsado correctamente.*`, m)
     } catch (e) {
-        console.error(e)
-        conn.reply(m.chat, `🌙 *Rayo Prem* | Error al expulsar al usuario.\n> *Motivo:* ${e.message}`, m)
+        conn.reply(m.chat, `🫆 Se ha producido un problema.\n> *Error:* ${e.message}`, m)
     }
 }
 

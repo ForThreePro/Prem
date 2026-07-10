@@ -7,66 +7,48 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
   let bot = global.db.data.settings[conn.user.jid] || {}
   let type = command.toLowerCase()
 
-  if (!args[0]) return m.reply(`⚡ *RAYO PREM* | PANEL DE CONFIGURACIÓN
-
-╭─〔 *Team Nightwish* 〕─╮
-│ 📌 *Uso:* ${usedPrefix + command} on/off
-│ ⚡ *Ejemplo:* ${usedPrefix + command} on
-╰──────────────────────╯
-
-> "Controla el poder del trueno"`)
+  if (!args[0]) return m.reply(`🛸 *[ BOX BOT MD ]* 🌌\n\n⚙️ *Configuración incorrecta.*\n📌 Uso: *${usedPrefix + command} on* o *${usedPrefix + command} off*`)
 
   let fail = false
-  let featureName = type
   switch (type) {
     case 'welcome': case 'bienvenida':
-      if (m.isGroup &&!isAdmin) { global.dfail('admin', m, conn); fail = true; break }
+      if (m.isGroup && !isAdmin) { global.dfail('admin', m, conn); fail = true; break }
       chat.bienvenida = isEnable
-      featureName = 'Bienvenida'
       break
     case 'subbots': case 'serbot':
       if (!isROwner) { global.dfail('rowner', m, conn); fail = true; break }
       bot.jadibotmd = isEnable
-      featureName = 'Sub Bots'
       break
     case 'antispam':
       if (!isOwner) { global.dfail('owner', m, conn); fail = true; break }
       bot.antiSpam = isEnable
-      featureName = 'AntiSpam'
       break
     case 'antilink':
-      if (m.isGroup &&!isAdmin) { global.dfail('admin', m, conn); fail = true; break }
+      if (m.isGroup && !isAdmin) { global.dfail('admin', m, conn); fail = true; break }
       chat.antiLink = isEnable
-      featureName = 'AntiLink'
       break
     case 'antibot':
-      if (m.isGroup &&!isAdmin) { global.dfail('admin', m, conn); fail = true; break }
+      if (m.isGroup && !isAdmin) { global.dfail('admin', m, conn); fail = true; break }
       chat.antiBot = isEnable
-      featureName = 'AntiBot'
       break
     case 'modoadmin':
-      if (m.isGroup &&!isAdmin) { global.dfail('admin', m, conn); fail = true; break }
+      if (m.isGroup && !isAdmin) { global.dfail('admin', m, conn); fail = true; break }
       chat.modoadmin = isEnable
-      featureName = 'Modo Admin'
       break
     case 'nsfw': case 'antinopor':
-      if (m.isGroup &&!isAdmin) { global.dfail('admin', m, conn); fail = true; break }
+      if (m.isGroup && !isAdmin) { global.dfail('admin', m, conn); fail = true; break }
       chat.nsfw = isEnable
-      featureName = 'NSFW'
       break
     case 'audios':
       chat.audios = isEnable
-      featureName = 'Audios'
       break
     case 'autoread': case 'autoleer':
       if (!isROwner) { global.dfail('rowner', m, conn); fail = true; break }
       global.opts['autoread'] = isEnable
-      featureName = 'AutoLeer'
       break
     case 'antiprivado':
       if (!isOwner) { global.dfail('owner', m, conn); fail = true; break }
       bot.antiPrivate = isEnable
-      featureName = 'AntiPrivado'
       break
     default:
       return
@@ -82,20 +64,15 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
     catalogoImg = { url: 'https://files.catbox.moe/t7uytz.png' }
   }
 
-  let estadoTexto = isEnable? 'Activado ⚡' : 'Desactivado ⛈️'
-  let estadoEmoji = isEnable? '🌀' : '🌙'
+  let estadoTexto = isEnable ? 'Activado 🌀' : 'Desactivado ✖️'
 
-  let statusTxt = `⚡ *RAYO PREM* | SISTEMA ⚡
-╭─〔 *Team Nightwish* 〕─╮
-│ ⚙️ *Función:* ${featureName}
-│ 📊 *Estado:* ${estadoTexto}
-│ ${estadoEmoji} *Operador:* @${m.sender.split('@')[0]}
-╰──────────────────────╯
-
-> "El sistema del trueno fue actualizado"`
+  let statusTxt = `🛸 *[ BOX BOT MD ]* 🌌\n\n`
+  statusTxt += `⚙️ *Función:* ${type}\n`
+  statusTxt += `📊 *Estado:* ${estadoTexto}\n\n`
+  statusTxt += `⚙️ *Box Bot MD • Sistema Automatizado* 🌀`
 
   await conn.sendMessage(m.chat, {
-    image: catalogoImg.byteLength? catalogoImg : { url: catalogoImg.url },
+    image: catalogoImg.byteLength ? catalogoImg : { url: catalogoImg.url },
     caption: statusTxt,
     mentions: [m.sender]
   }, { quoted: m })

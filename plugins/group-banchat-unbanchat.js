@@ -1,6 +1,5 @@
 let handler = async (m, { conn, isOwner, isAdmin, isROwner, command }) => {
-  if (!m.isGroup) return m.reply(`⚡ *Rayo Prem* | Este comando solo funciona en grupos.`)
-
+  if (!m.isGroup) return
   let chat = global.db.data.chats[m.chat]
   let type = command.toLowerCase()
 
@@ -11,33 +10,15 @@ let handler = async (m, { conn, isOwner, isAdmin, isROwner, command }) => {
 
   switch (type) {
     case 'banchat': case 'banearchat':
-      if (chat.isBanned) return m.reply(`⛈️ *RAYO PREM* | Este chat ya está bajo bloqueo.`)
-      
+      if (chat.isBanned) return m.reply(`🛸 *[ BOX BOT MD ]* 🌌\n\n⚠️ *Este chat ya se encuentra baneado.*`)
       chat.isBanned = true
-      await conn.reply(m.chat, `⛈️ *RAYO PREM* | BLOQUEO ACTIVADO ⛈️
-╭─〔 *Team Nightwish* 〕─╮
-│ 🚫 *Estado:* CHAT BANEADO
-│ ⚡ *Acción:* El bot queda inactivo
-│ 📢 *Nota:* No responderé a comandos
-│ 👑 *Ejecutado por:* @${m.sender.split('@')[0]}
-╰──────────────────────╯
-
-> "El trueno selló este grupo"`, m, { mentions: [m.sender] })
+      await conn.reply(m.chat, `🛸 *[ BOX BOT MD ]* 🌌\n\n🚫 *Chat Baneado:* El bot ha sido desactivado en este grupo.\n💬 No responderé a ningún comando hasta que sea desbloqueado.\n\n⚙️ *Box Bot MD • Control de Grupos* 🌀`, m)
       break
 
     case 'unbanchat': case 'desbanearchat':
-      if (!chat.isBanned) return m.reply(`🌙 *RAYO PREM* | Este chat no está baneado.`)
-      
+      if (!chat.isBanned) return m.reply(`🛸 *[ BOX BOT MD ]* 🌌\n\n⚠️ *Este chat no está baneado.*`)
       chat.isBanned = false
-      await conn.reply(m.chat, `⚡ *RAYO PREM* | BLOQUEO DESACTIVADO ⚡
-╭─〔 *Team Nightwish* 〕─╮
-│ 🌀 *Estado:* CHAT LIBERADO
-│ ⚡ *Acción:* El bot vuelve a la actividad
-│ 📢 *Nota:* Todos los comandos activos
-│ 👑 *Ejecutado por:* @${m.sender.split('@')[0]}
-╰──────────────────────╯
-
-> "El trueno rompió el sello"`, m, { mentions: [m.sender] })
+      await conn.reply(m.chat, `🛸 *[ BOX BOT MD ]* 🌌\n\n🌀 *Chat Desbaneado:* El bot vuelve a estar activo en este grupo.\n⚡ Ya pueden utilizar todos los comandos con normalidad.\n\n⚙️ *Box Bot MD • Control de Grupos* 🌀`, m)
       break
 
     default:
@@ -48,6 +29,5 @@ let handler = async (m, { conn, isOwner, isAdmin, isROwner, command }) => {
 handler.help = ['banchat', 'unbanchat']
 handler.tags = ['grupos']
 handler.command = /^(banchat|banearchat|unbanchat|desbanearchat)$/i
-handler.admin = true
 
 export default handler
