@@ -6,9 +6,13 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
     if (!text) return conn.reply(m.chat, `╭─❒ *『 𝗧𝗘𝗔𝗠 𝗡𝗜𝗚𝗛𝗧𝗪𝗜𝗦𝗛 』* ❒
 │ ⛈️ *CENTRAL DE DESCARGAS*
 │
-│ ⚡ *Comandos:*
+│ ⚡ *YouTube:*
 │ 🌙 *.play* nombre = Audio YT
 │ 🌙 *.play2* nombre = Video YT
+│ 🌙 *.ytmp3* link/nombre = Audio Directo
+│ 🌙 *.ytmp4* link/nombre = Video 720p Directo
+│
+│ ⚡ *Música y Social:*
 │ 🌙 *.spotify* nombre = Audio SP
 │ 🌙 *.tiktok* link = Video TT
 │ 🌙 *.tiktoksearch* texto = Buscar TT
@@ -24,7 +28,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
     const keySasuke = Buffer.from('c2FzdWtl', 'base64').toString('utf-8')
 
     try {
-        // ===== PLAY / PLAY2 YOUTUBE =====
+        // ===== PLAY / PLAY2 YOUTUBE BUSQUEDA =====
         if (/^(play|play2)$/i.test(command)) {
             let res = await yts(text)
             let vid = res.videos[0]
@@ -35,7 +39,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
 
             let isVideo = command === 'play2'
             let apiUrl = isVideo
-               ? `https://api.evogb.org/dl/ytmp4?url=${encodeURIComponent(vid.url)}&quality=720&key=${keySasuke}`
+              ? `https://api.evogb.org/dl/ytmp4?url=${encodeURIComponent(vid.url)}&quality=720&key=${keySasuke}`
                 : `https://api.evogb.org/dl/ytmp3?url=${encodeURIComponent(vid.url)}&key=${keySasuke}`
 
             let json = await (await fetch(apiUrl)).json()
@@ -51,6 +55,42 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
 │ 📁 *Formato:* ${isVideo? 'MP4 720p' : 'MP3 320kbps'}
 │
 │ > *“Extrayendo del trueno digital”*
+╰─────────────────❒`
+
+            await conn.sendMessage(m.chat, { image: { url: vid.thumbnail }, caption: cap }, { quoted: m })
+            await conn.sendMessage(m.chat, {
+                [isVideo? 'video' : 'audio']: { url: json.data.dl },
+                mimetype: isVideo? 'video/mp4' : 'audio/mpeg',
+                fileName: `${vid.title}.${isVideo? 'mp4' : 'mp3'}`
+            }, { quoted: m })
+            return await m.react('✅')
+        }
+
+        // ===== YTMP3 / YTMP4 DIRECTO =====
+        if (/^(ytmp3|ytmp4)$/i.test(command)) {
+            let res = await yts(text)
+            let vid = res.videos[0]
+            if (!vid) throw 'YT_NOT_FOUND'
+
+            await m.react('⏳')
+
+            let isVideo = command === 'ytmp4'
+            let apiUrl = isVideo
+               ? `https://api.evogb.org/dl/ytmp4?url=${encodeURIComponent(vid.url)}&quality=720&key=${keySasuke}`
+                : `https://api.evogb.org/dl/ytmp3?url=${encodeURIComponent(vid.url)}&key=${keySasuke}`
+
+            let json = await (await fetch(apiUrl)).json()
+            if (!json.status) throw 'YT_DL_ERROR'
+
+            let cap = `╭─❒ *『 𝗧𝗘𝗔𝗠 𝗡𝗜𝗚𝗛𝗧𝗪𝗜𝗦𝗛 』* ❒
+│ ⚡ *YOUTUBE ${isVideo? 'VIDEO' : 'AUDIO'} DIRECTO*
+│
+│ 📌 *Título:* ${vid.title}
+│ 📁 *Formato:* ${isVideo? 'MP4 720p' : 'MP3'}
+│ ⏱️ *Duración:* ${vid.timestamp}
+│ 👁️ *Vistas:* ${vid.views.toLocaleString()}
+│
+│ > *“Descarga iniciada por el rayo”*
 ╰─────────────────❒`
 
             await conn.sendMessage(m.chat, { image: { url: vid.thumbnail }, caption: cap }, { quoted: m })
@@ -201,7 +241,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
         console.error(e)
         await m.react('❌')
         let msgs = {
-            YT_NOT_FOUND: 'No se encontraron resultados en YouTube',
+            YT_NOT_FOUND: 'No se encontró el video',
             YT_DL_ERROR: 'Error al procesar la descarga de YouTube',
             SP_NOT_FOUND: `No se encontraron resultados para: ${text}`,
             SP_DL_ERROR: 'Error al obtener el enlace de Spotify',
@@ -220,8 +260,8 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
     }
 }
 
-handler.help = ['play', 'play2', 'spotify', 'tiktok', 'tiktoksearch', 'ig', 'fb', 'mediafire']
+handler.help = ['play', 'play2', 'ytmp3', 'ytmp4', 'spotify', 'tiktok', 'tiktoksearch', 'ig', 'fb', 'mediafire']
 handler.tags = ['downloader']
-handler.command = /^(play|play2|spotify|tiktok|tiktoksearch|ig|instagram|fb|facebook|mediafire|mf|mediafiredl)$/i
+handler.command = /^(play|play2|ytmp3|ytmp4|spotify|tiktok|tiktoksearch|ig|instagram|fb|facebook|mediafire|mf|mediafiredl)$/i
 
 export default handler
