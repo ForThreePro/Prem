@@ -11,15 +11,18 @@ let handler = async (m, { conn }) => {
 🌟 1. ・
 🌟 2. ・  
 🌟 3. ・
-🌟 4. ・ ・ ・ ・ ・
+🌟 4. ・
 
 ───────────────
    💫 𝗦𝗨𝗣𝗟𝗘𝗡𝗧𝗘𝗦 💫
 ───────────────
 💜 1. ・
-💜 2. ・ ・ ・ ・ ・ ・
+💜 2. ・
 
-🎁 𝗗𝗢𝗡𝗔𝗗𝗢𝗥𝗔: @${m.sender.split('@')[0]}
+───────────────
+   🎁 𝗗𝗢𝗡𝗔𝗗𝗢𝗥𝗔 𝗗𝗘 𝗦𝗔𝗟𝗔 🎁
+───────────────
+💎 ・
 
 🌙✧･ﾟ: *Llenen y copien* :ﾟ･✧🌙`
 
@@ -30,7 +33,7 @@ let handler = async (m, { conn }) => {
 }
 
 handler.help = ['vs4']
-handler.tags = ['ff']
+handler.tags = ['ff', 'teamnightwish']
 handler.command = /^(vs4)$/i
 handler.group = true
 
