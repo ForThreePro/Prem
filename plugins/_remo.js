@@ -1,70 +1,66 @@
-import fs from "fs"
-import path from "path"
-import fetch from "node-fetch"
-import Jimp from "jimp"
-import FormData from "form-data"
-import { fileURLToPath } from "url"
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-const handler = async (m, { conn }) => {
-  try {
-    const q = m.quoted || m
-    const mime = (q.msg || q).mimetype || q.mediaType || ""
-
-    if (!/^image\/(jpe?g|png)$/.test(mime)) {
-      return m.reply(`*${xtools} Por favor, responde a una imagen para eliminar el fondo.*`)
+import axios from 'axios';
+import FormData from 'form-data';
+import { downloadContentFromMessage } from '@whiskeysockets/baileys';
+async function getImageBuffer(message) {
+    const quoted = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+    const imageMessage = quoted?.imageMessage || message.message?.imageMessage;
+    if (!imageMessage)
+        return null;
+    const stream = await downloadContentFromMessage(imageMessage, 'image');
+    const chunks = [];
+    for await (const chunk of stream)
+        chunks.push(chunk);
+    return Buffer.concat(chunks);
+}
+export default {
+    command: 'removebg',
+    aliases: ['rmbg', 'bgremove'],
+    category: 'tools',
+    description: 'Remove background from an image',
+    usage: '.removebg (reply to image or send image with caption)',
+    async handler(sock, message, args, context) {
+        const chatId = context.chatId || message.key.remoteJid;
+        try {
+            const imageBuffer = await getImageBuffer(message);
+            if (!imageBuffer) {
+                return await sock.sendMessage(chatId, {
+                    text: '📸 *Remove Background*\n\nUsage:\n' +
+                        '• Reply to an image with `.removebg`\n' +
+                        '• Send image with caption `.removebg`'
+                }, { quoted: message });
+            }
+            const apiKey = process.env.REMOVEBG_KEY;
+            if (!apiKey) {
+                return await sock.sendMessage(chatId, {
+                    text: '❌ RemoveBG API key not configured.'
+                }, { quoted: message });
+            }
+            const form = new FormData();
+            form.append('size', 'auto');
+            form.append('image_file', imageBuffer, {
+                filename: 'image.jpg',
+                contentType: 'image/jpeg'
+            });
+            const response = await axios.post('https://api.remove.bg/v1.0/removebg', form, {
+                headers: { ...form.getHeaders(), 'X-Api-Key': apiKey },
+                responseType: 'arraybuffer',
+                timeout: 60000
+            });
+            await sock.sendMessage(chatId, {
+                image: response.data,
+                caption: '✨ *Background removed successfully*\n\n𝗣𝗢𝗪𝗘𝗥𝗘𝗗 𝗕𝗬 𝗚𝗔𝗔𝗝𝗨-𝗠𝗗'
+            }, { quoted: message });
+        }
+        catch (err) {
+            console.error('RemoveBG Error:', err?.response?.data || err.message);
+            let msg = '❌ Failed to remove background.';
+            if (err.response?.status === 402)
+                msg = '💳 API quota exceeded.';
+            else if (err.response?.status === 401)
+                msg = '🔑 Invalid API key.';
+            else if (err.code === 'ECONNABORTED')
+                msg = '⏰ Request timeout. Try again.';
+            await sock.sendMessage(chatId, { text: msg }, { quoted: message });
+        }
     }
-
-    await m.react('👨🏻‍🔧')
-
-    const buffer = await q.download()
-    const image = await Jimp.read(buffer)
-    image.resize(800, Jimp.AUTO)
-
-    const tmp = path.join(__dirname, `tmp_${Date.now()}.jpg`)
-    await image.writeAsync(tmp)
-
-    const url = await uploadToUguu(tmp)
-    if (!url) throw new Error("No se pudo subir la imagen.")
-
-    const img = await removeBg(url)
-    await conn.sendFile(m.chat, img, "creditosawillzek.jpg", "✅ Fondo eliminado", m)
-
-  } catch (err) {
-    conn.reply(m.chat, `⚠️ Error: ${err.message}`, m)
-  }
-}
-
-handler.help = ['removebg']
-handler.tags = ['tools']
-handler.command = ['removebg', 'delfondo']
-
-export default handler
-
-async function uploadToUguu(filePath) {
-  const form = new FormData()
-  form.append("files[]", fs.createReadStream(filePath))
-
-  try {
-    const res = await fetch("https://uguu.se/upload.php", {
-      method: "POST",
-      headers: form.getHeaders(),
-      body: form
-    })
-
-    const json = await res.json()
-    await fs.promises.unlink(filePath)
-    return json.files?.[0]?.url
-  } catch {
-    await fs.promises.unlink(filePath)
-    return null
-  }
-}
-
-async function removeBg(imageUrl) {
-  const res = await fetch(`https://api.siputzx.my.id/api/iloveimg/removebg?image=${encodeURIComponent(imageUrl)}&scale=2`)
-  if (!res.ok) throw new Error("No se pudo eliminar el fondo.")
-  return await res.buffer()
-}
+};
