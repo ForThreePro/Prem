@@ -2,7 +2,7 @@ let handler = async (m, { conn }) => {
 
     let plantilla = `🌙✧･ﾟ: *🌌 𝚃𝙴𝙰𝙼 𝙽𝙸𝙶𝙷𝚃𝚆𝙸𝚂𝙷 🌌* :ﾟ･✧🌙
 
-👑 𝗘𝗡𝗖𝗔𝗥𝗚𝗔𝗗𝗔: @${m.sender.split('@')[0]}
+👑 𝗘𝗡𝗖𝗔𝗥𝗚𝗔𝗗𝗔: ・
 ⏰ 𝗛𝗢𝗥𝗔: __:__ 🇦🇷  /  __:__ 🇵🇪
 
 ───────────────
@@ -26,15 +26,13 @@ let handler = async (m, { conn }) => {
 
 🌙✧･ﾟ: *Llenen y copien* :ﾟ･✧🌙`
 
-    await conn.sendMessage(m.chat, {
-        text: plantilla,
-        mentions: [m.sender]
-    }, { quoted: m })
+    await conn.sendMessage(m.chat, { text: plantilla }, { quoted: m })
 }
 
 handler.help = ['vs4']
-handler.tags = ['ff']
+handler.tags = ['ff', 'teamnightwish']
 handler.command = /^(vs4)$/i
 handler.group = true
+handler.admin = true  // ← SOLO ADMINS
 
 export default handler
