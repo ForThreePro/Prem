@@ -1,19 +1,28 @@
-let handler = async (m, { conn, text, usedPrefix, command }) => {
-    let [emoji1, emoji2] = text.split(/[&+\s]+/)
-    if (!emoji1 || !emoji2) return conn.reply(m.chat, `⚡ *RAYO PREM* ➔ Uso correcto: ${usedPrefix + command} emoji1+emoji2\n> Ejemplo: ${usedPrefix + command} 😃+⚡`, m) // Cambiado
-
-    let url = `https://api.evogb.org/tools/emojimix?emoji1=${encodeURIComponent(emoji1)}&emoji2=${encodeURIComponent(emoji2)}&key=sasuke`
-
-    try {
-        await conn.sendMessage(m.chat, { sticker: { url: url } }, { quoted: m })
-        await conn.react(m.chat, '🌙', m.key) // React extra
-    } catch (e) {
-        conn.reply(m.chat, `⚡ *RAYO PREM ERROR* ➔ Falló al mezclar los emojis.\n\`\`${e.message}\`\``, m) // Cambiado
-    }
-}
-
-handler.help = ['emojimix <emoji1>+<emoji2>']
-handler.tags = ['fun']
-handler.command = ['emojimix', 'mix']
+import MessageType from '@whiskeysockets/baileys'
+import fetch from 'node-fetch'
+import { sticker } from '../lib/sticker.js'
+import fs from "fs"
+const fetchJson = (url, options) => new Promise(async (resolve, reject) => {
+fetch(url, options)
+.then(response => response.json())
+.then(json => {
+resolve(json)
+})
+.catch((err) => {
+reject(err)
+})})
+let handler = async (m, { conn, text, args, usedPrefix, command }) => {
+if (!args[0]) return m.reply(`✨ Ejemplo: *${usedPrefix + command}* 😎+🤑`)
+let [emoji, emoji2] = text.split`+`
+let anu = await fetchJson(`https://tenor.googleapis.com/v2/featured?key=AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ&contentfilter=high&media_filter=png_transparent&component=proactive&collection=emoji_kitchen_v5&q=${encodeURIComponent(emoji)}_${encodeURIComponent(emoji2)}`)
+for (let res of anu.results) {
+let stiker = await sticker(false, res.url, global.packname, global.author)
+conn.sendFile(m.chat, stiker, null, { asSticker: true }, m)
+}}
+handler.help = ['emojimix *<emoji+emoji>*']
+handler.tags = ['sticker']
+handler.command = ['emojimix'] 
+//handler.limit = 1
+handler.register = false
 
 export default handler
