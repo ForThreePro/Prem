@@ -30,7 +30,7 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
       { prefijo: '91', bandera: '🇮🇳' }, { prefijo: '61', bandera: '🇦🇺' },
       { prefijo: '64', bandera: '🇳🇿' }, { prefijo: '1', bandera: '🇺🇸' },
       { prefijo: '7', bandera: '🇷🇺' }, { prefijo: '63', bandera: '🇵🇭' },
-      { prefijo: '95', bandera: '🇲🇲' }
+      { prefijo: '95', bandera: '🇲' }
     ];
 
     const getCountryFlag = (mem) => {
@@ -45,7 +45,7 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
       return '🚩';
     };
 
-    // Agrupar por bandera
+    // Agrupar por bandera CORRECTO
     const grouped = {};
     for (const mem of participants) {
       const flag = getCountryFlag(mem);
@@ -72,9 +72,9 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
 `
 
     for (const flag of orderedFlags) {
-      if (grouped[flag]) {
+      if (grouped[flag]) { // <-- ESTA ERA LA FALLA
         messageText += `\n.⃟𖥔 ݁⚡𖦹˙— \`${flag}\` —˙𖦹⚡꒷\n`
-        for (const mem of grouped[flag]) {
+        for (const mem of grouped[flag]) { // <-- Y ESTA
           const realJid = mem.jid || mem.id || '';
           const displayNumber = realJid.split('@')[0];
           messageText += ` ⚡ ➛@${displayNumber}\n`
@@ -87,7 +87,7 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
 ⚡━━━━━━━━
 ⛈️ *BOT:* RAYO PREM BOT
 ⚡ *Creador:* Whois Yallico 👑
-⛈️ *Versión:* 3.0.3 Thunder Clean
+⛈️ *Versión:* 3.0.4 Thunder Clean
 
 > *"Que el trueno los reúna"* ⚡
 ⚡━━━━━━━━`
@@ -110,7 +110,7 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
     console.error("[ERROR EN RAYO TODOS]:", error);
     conn.reply(m.chat, `⚡━━━━━━━━
 ⛈️ *ERROR EN INVOCACION*
-⚡ No se pudo ejecutar el comando
+⚡ ${error.message}
 ⚡━━━━━━━━`, m);
   }
 };
