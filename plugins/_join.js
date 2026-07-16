@@ -1,42 +1,51 @@
-let handler = async (m, { conn, text, isOwner }) => {
-    if (!isOwner) return m.reply('🐼 Solo mi creador puede usar este comando')
+import { areJidsSameUser } from '@whiskeysockets/baileys'
 
-    if (!text) return m.reply(`*Uso:*.join https://chat.whatsapp.com/xxxxx\nPásame el link y me uno al grupo 💗`)
+let handler = async (m, { conn, text, isOwner }) => {
+    if (!isOwner) return m.reply(`❌ *ACCESO DENEGADO*\nSolo mi Creador puede usar este comando ⚡`)
+
+    if (!text) return m.reply(`⚡ *RAYO PREM JOIN*\n\n*Uso:*.join https://chat.whatsapp.com/xxxxx\n\n*Mándame el link del grupo y entro volando* 💨`)
 
     let link = text.match(/chat\.whatsapp\.com\/([0-9A-Za-z]{20,24})/)
-    if (!link) return m.reply('❌ Link inválido. Envíame un link de grupo de WhatsApp válido')
+    if (!link) return m.reply('❌ *LINK INVÁLIDO*\nEnvíame un link de grupo válido de WhatsApp')
 
     let code = link[1]
 
-    // Mensaje de que ya se está uniendo
-    await m.reply(`⏳ *Ya me estoy uniendo...*\n\nSi tienen verificación de ingreso al grupo, *acéptenme* porfa 🐼💗`)
+    // Mensaje estilo Thunder
+    await m.reply(`⚡ *CONECTANDO CON EL SERVIDOR...*\n⏳ *Uniéndome al grupo...*\n\n📢 *Si hay verificación, acéptenme admins* 🐼`)
 
     try {
+        await new Promise(r => setTimeout(r, 3000)) // delay 3s estilo thunder
         let res = await conn.groupAcceptInvite(code)
 
-        // Mensaje cuando ya entró
-        await conn.sendMessage(res + '@g.us', {
-            text: `HOLA 🐼💗\nSoy COTTI DZN BOT\nGracias por aceptarme! Ya estoy aquí para ayudar ✨`
-        })
+        if(res) {
+            let groupMetadata = await conn.groupMetadata(res + '@g.us')
+            let groupName = groupMetadata.subject
 
-        await m.reply(`✅ Ya me uní al grupo exitosamente\n*ID:* ${res}`)
+            await conn.sendMessage(res + '@g.us', {
+                text: `⚡ *THUNDER BOT CONECTADO* ⚡\n\nHola! Soy *Rayo Prem Bot* 🐼💗\nGrupo: *${groupName}*\n\nGracias por aceptarme admins ✨\nUsa *.menu* para ver mis comandos`,
+                buttons: [
+                    {buttonId: '.menu', buttonText: {displayText: '📜 MENU'}, type: 1},
+                    {buttonId: '.info', buttonText: {displayText: 'ℹ️ INFO'}, type: 1}
+                ],
+                footer: 'Thunder Bot © 2026'
+            }, { quoted: m })
 
-    } catch (e) {
-        console.log(e)
-        if (e.message.includes('already')) {
-            m.reply('❌ Ya estoy en ese grupo')
-        } else if (e.message.includes('revoked')) {
-            m.reply('❌ El link expiró o fue revocado')
-        } else if (e.message.includes('pending')) {
-            m.reply('⏳ Quedé pendiente de aprobación. Esperen a que un admin me acepte 🐼')
-        } else {
-            m.reply('❌ No pude unirme. Revisa el link o que no me hayan baneado')
+            await m.reply(`✅ *UNIÓN EXITOSA* ⚡\n*Grupo:* ${groupName}\n*ID:* ${res}`)
         }
+    } catch(e) {
+        console.log(e)
+        let err = e.toString()
+        if(err.includes('already')) return m.reply('❌ *ERROR 001*\nYa me encuentro en ese grupo ⚡')
+        if(err.includes('revoked')) return m.reply('❌ *ERROR 002*\nEl enlace expiró o fue revocado')
+        if(err.includes('forbidden')) return m.reply('❌ *ERROR 003*\nWhatsApp bloqueó la unión.\n*Solución:* Agrégame manual desde el grupo')
+        m.reply(`❌ *ERROR 404*\nNo pude unirme al grupo\n*Razón:* ${err}`)
     }
 }
+
 handler.help = ['join <link>']
 handler.tags = ['owner']
 handler.command = ['join', 'unirbot', 'entrar']
 handler.owner = true
+handler.premium = false
 
 export default handler
