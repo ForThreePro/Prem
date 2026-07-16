@@ -12,7 +12,7 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
     const groupMetadata = await conn.groupMetadata(m.chat).catch(() => ({ subject: 'Grupo', participants: [] }));
     const groupName = groupMetadata.subject;
 
-    // Banderas por prefijo
+    // Lista de banderas por prefijo
     const countryFlags = [
       { prefijo: '502', bandera: '🇬🇹' }, { prefijo: '503', bandera: '🇸🇻' },
       { prefijo: '504', bandera: '🇭🇳' }, { prefijo: '505', bandera: '🇳🇮' },
@@ -45,7 +45,7 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
       return '🚩';
     };
 
-    // Agrupar por bandera
+    // Agrupar participantes por bandera
     const grouped = {};
     for (const mem of participants) {
       const flag = getCountryFlag(mem);
@@ -55,7 +55,7 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
 
     const orderedFlags = countryFlags.map(c => c.bandera).concat(['🚩']);
 
-    // ESTILO RAYO PREM BOT THUNDER CLEAN
+    // DISEÑO THUNDER CLEAN
     let messageText = `ᯇ 𝗥𝗔𝗬𝗢 𝗣𝗥𝗘𝗠 𝗕𝗢𝗧 ⚡ ୧
 
  ⤷ ┇ 𝗜𝗡𝗩𝗢𝗖𝗔𝗖𝗜𝗢𝗡 𝗚𝗘𝗡𝗘𝗥𝗔𝗟 ：✿ 。
@@ -87,17 +87,17 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
 ⚡━━━━━━━━
 ⛈️ *BOT:* RAYO PREM BOT
 ⚡ *Creador:* Whois Yallico 👑
-⛈️ *Versión:* 3.0.6 Thunder Clean
+⛈️ *Versión:* 3.0.8 Thunder Clean
 
 > *"Que el trueno los reúna"* ⚡
 ⚡━━━━━━━━`
 
-    // SOLO DETECTAR FOTO DEL GRUPO
+    // Detectar foto del grupo y convertir a buffer para evitar error
     let img
     try {
       const url = await conn.profilePictureUrl(m.chat, 'image')
       const res = await fetch(url)
-      img = await res.buffer() // Descargar a buffer
+      img = await res.buffer()
 
       await conn.sendMessage(m.chat, {
         image: img,
@@ -106,7 +106,6 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
       }, { quoted: m });
 
     } catch {
-      // Si no hay foto, manda solo texto
       await conn.sendMessage(m.chat, {
         text: messageText,
         mentions: participants.map(a => a.jid || a.id)
