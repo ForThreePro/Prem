@@ -45,7 +45,7 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
       return '🚩';
     };
 
-    // Agrupar participantes por bandera
+    // Agrupar participantes por bandera - ARREGLADO
     const grouped = {};
     for (const mem of participants) {
       const flag = getCountryFlag(mem);
@@ -87,17 +87,16 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
 ⚡━━━━━━━━
 ⛈️ *BOT:* RAYO PREM BOT
 ⚡ *Creador:* Whois Yallico 👑
-⛈️ *Versión:* 3.1.1 Thunder Clean
+⛈️ *Versión:* 3.1.2 Thunder Clean
 
 > *"Que el trueno los reúna"* ⚡
 ⚡━━━━━━━━`
 
     // Detectar foto del grupo y convertir a buffer
-    let img
     try {
       const url = await conn.profilePictureUrl(m.chat, 'image')
       const res = await fetch(url)
-      img = await res.buffer()
+      const img = await res.buffer()
 
       await conn.sendMessage(m.chat, {
         image: img,
