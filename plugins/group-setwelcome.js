@@ -1,10 +1,10 @@
 const handler = async (m, { conn, text, command, isAdmin, isOwner }) => {
     if (!m.isGroup || (!isAdmin &&!isOwner)) {
-        return m.reply(`╭─❒ *『 𝗧𝗘𝗔𝗠 𝗡𝗜𝗚𝗛𝗧𝗪𝗜𝗦𝗛 』* ❒
-│ ⛈️ *ACCESO DENEGADO*
+        return m.reply(`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ ❌ *ACCESO DENEGADO*
 │
 │ ⚡ *Solo los admins o el dueño*
-│ 🌙 *pueden invocar este trueno*
+│ 🤖 *pueden ejecutar este comando*
 ╰─────────────────❒`);
     }
 
@@ -13,8 +13,8 @@ const handler = async (m, { conn, text, command, isAdmin, isOwner }) => {
     chat = global.db.data.chats[m.chat]
 
     if (command === 'setwelcome') {
-        if (!text) return m.reply(`╭─❒ *『 𝗧𝗘𝗔𝗠 𝗡𝗜𝗚𝗛𝗧𝗪𝗜𝗦𝗛 』* ❒
-│ 🌩️ *CONFIGURAR BIENVENIDA*
+        if (!text) return m.reply(`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 👋 *CONFIGURAR BIENVENIDA*
 │
 │ ⚡ *Falta el mensaje*
 │
@@ -25,12 +25,12 @@ const handler = async (m, { conn, text, command, isAdmin, isOwner }) => {
 │ @desc = Descripción
 │
 │ 💡 *Ejemplo:*
-│ .setwelcome ⛈️ @user invocó el trueno ⚡
-│ 🌩️ Bienvenido a @group
-│ 👥 Eres el guerrero #@count
+│ .setwelcome ✅ @user se unió al servidor 💻
+│ 🤖 Bienvenido a @group
+│ 👥 Miembro #@count
 ╰─────────────────❒`);
         chat.customWelcome = text.trim();
-        return m.reply(`╭─❒ *『 𝗧𝗘𝗔𝗠 𝗡𝗜𝗚𝗛𝗧𝗪𝗜𝗦𝗛 』* ❒
+        return m.reply(`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ ✅ *BIENVENIDA GUARDADA*
 │
 │ 📝 *Vista previa:*
@@ -40,17 +40,17 @@ const handler = async (m, { conn, text, command, isAdmin, isOwner }) => {
 ╰─────────────────❒`);
     }
     if (command === 'delwelcome') {
-        if (!chat.customWelcome) return m.reply(`╭─❒ *『 𝗧𝗘𝗔𝗠 𝗡𝗜𝗚𝗛𝗧𝗪𝗜𝗦𝗛 』* ❒
+        if (!chat.customWelcome) return m.reply(`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ ⚠️ *SIN BIENVENIDA*
 │
-│ 🌙 *No tienes una bienvenida editada*
+│ 🤖 *No tienes una bienvenida editada*
 ╰─────────────────❒`);
         delete chat.customWelcome;
-        return m.reply(`╭─❒ *『 𝗧𝗘𝗔𝗠 𝗡𝗜𝗚𝗛𝗧𝗪𝗜𝗦𝗛 』* ❒
+        return m.reply(`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ ✅ *BIENVENIDA ELIMINADA*
 │
 │ 🗑️ *Se borró el mensaje personalizado*
-│ ⚡ *Ahora se usa la de welcome.js*
+│ 💻 *Ahora se usa la de welcome.js*
 ╰─────────────────❒`);
     }
 };
