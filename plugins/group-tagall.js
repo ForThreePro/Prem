@@ -5,7 +5,7 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
       return;
     }
 
-    const customMessage = args.join(' ') || '⛈️ Invocación del Trueno';
+    const customMessage = args.join(' ') || '⚡ Notificación del Sistema';
     const groupMetadata = await conn.groupMetadata(m.chat).catch(() => ({ subject: 'Grupo', participants: [] }));
     const groupName = groupMetadata.subject;
 
@@ -52,20 +52,20 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
 
     const orderedFlags = countryFlags.map(c => c.bandera).concat(['🚩']);
 
-    // Texto con estética Team Nightwish
-    let messageText = `ᯇ 𝗥𝗔𝗬𝗢 𝗣𝗥𝗘𝗠 𝗕𝗢𝗧 ⚡ ୧
+    // Texto con estética Cyber Bot
+    let messageText = `ᯇ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 💻 ୧
 
- ⤷ ┇ 𝗜𝗡𝗩𝗢𝗖𝗔𝗖𝗜𝗢𝗡 𝗚𝗘𝗡𝗘𝗥𝗔𝗟 ：✿ 。
+ ⤷ ┇ 𝗡𝗢𝗧𝗜𝗙𝗜𝗖𝗔𝗖𝗜𝗢𝗡 𝗚𝗘𝗡𝗘𝗥𝗔𝗟 ：✿ 。
 ꒰ ◞⁺⊹ ．grupo • ${groupName}
 
  ꒱ ׁ. ᘏ 𝗆𝖾𝗇𝗌⍺𝗃𝖾 ׅ 𝆬
-⚡ ${customMessage} ࣪ ꕀ ˚
-> *"Domina el trueno, domina el chat"*
+🤖 ${customMessage} ࣪ ꕀ ˚
+> *"Conectando a todos los usuarios"*
 
 ──愛 *INTEGRANTES* ╏ 📊
 👥 Total: ${participants.length} usuarios
 
-──⚡ *LISTA POR PAÍS* ⚡──
+──💻 *LISTA POR PAÍS* 💻──
 `
 
     for (const flag of orderedFlags) {
@@ -78,11 +78,11 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
       }
     }
 
-    messageText += `.⃟𖥔 ݁⚡𖦹˙—  *RAYO PREM BOT*  —˙𖦹⚡꒷
-⛈️ Creador: Whois Yallico 👑
-⚡ Versión: 3.1.5 Thunder Clean
+    messageText += `.⃟𖥔 ݁💻𖦹˙— *CYBER BOT SYSTEM* —˙𖦹💻꒷
+🤖 Creador: Whois Yallico 👑
+💻 Versión: 3.1.5 Cyber Clean
 
-> *"Que el trueno los reúna"* ⚡
+> *"Sistema conectado a todos"* 💻
  ㅤ└──.✦ ── ⊰ ̟!!.✦. `;
 
     // NUEVO: Detectar foto del grupo
@@ -90,7 +90,7 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
     try {
       img = await conn.profilePictureUrl(m.chat, 'image') // Foto del grupo
     } catch {
-      img = 'https://files.evogb.win/jgBvm8.jpg' // Fallback trueno
+      img = 'https://files.evogb.win/jgBvm8.jpg' // Fallback cyber
     }
 
     await conn.sendMessage(m.chat, {
@@ -100,9 +100,9 @@ const handler = async (m, { isOwner, isAdmin, conn, participants, args }) => {
     }, { quoted: m });
 
   } catch (error) {
-    console.error("[ERROR EN NIGHTWISH]:", error);
-    conn.reply(m.chat, `╭─❒ *『 𝗧𝗘𝗔𝗠 𝗡𝗜𝗚𝗛𝗧𝗪𝗜𝗦𝗛 』* ❒
-│ ⛈️ *ERROR*
+    console.error("[ERROR EN CYBER BOT]:", error);
+    conn.reply(m.chat, `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ ❌ *ERROR DE SISTEMA*
 │
 │ ⚡ *Ocurrió un error al ejecutar el comando*
 ╰─────────────────❒`, m);
