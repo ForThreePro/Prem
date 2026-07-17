@@ -2,7 +2,7 @@ import { sticker, addExif } from '../lib/sticker.js'
 import axios from 'axios'
 import fetch from 'node-fetch'
 
-const MARCA = 'For Three Bot 🌀' // <- TU MARCA
+const MARCA = 'Cyber Bot 💻' // <- TU MARCA
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 const fetchSticker = async (text, attempt = 1) => {
