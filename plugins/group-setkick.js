@@ -1,10 +1,10 @@
 const handler = async (m, { conn, text, command, isAdmin, isOwner }) => {
     if (!m.isGroup || (!isAdmin &&!isOwner)) {
-        return m.reply(`╭─❒ *『 𝗧𝗘𝗔𝗠 𝗡𝗜𝗚𝗛𝗧𝗪𝗜𝗦𝗛 』* ❒
-│ ⛈️ *ACCESO DENEGADO*
+        return m.reply(`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ ❌ *ACCESO DENEGADO*
 │
 │ ⚡ *Solo los admins o el dueño*
-│ 🌙 *pueden dictar sentencia*
+│ 🤖 *pueden ejecutar comandos*
 ╰─────────────────❒`);
     }
 
@@ -13,16 +13,16 @@ const handler = async (m, { conn, text, command, isAdmin, isOwner }) => {
     chat = global.db.data.chats[m.chat]
 
     if (command === 'setkick') {
-        if (!text) return m.reply(`╭─❒ *『 𝗧𝗘𝗔𝗠 𝗡𝗜𝗚𝗛𝗧𝗪𝗜𝗦𝗛 』* ❒
+        if (!text) return m.reply(`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ 🚫 *CONFIGURAR KICK*
 │
 │ ⚡ *Falta el mensaje*
 │
 │ 💡 *Ejemplo:*
-│ .setkick 🚫 @user fue alcanzado por el trueno ⚡
+│ .setkick 🚫 @user fue expulsado del servidor 💻
 ╰─────────────────❒`);
         chat.customKick = text.trim();
-        return m.reply(`╭─❒ *『 𝗧𝗘𝗔𝗠 𝗡𝗜𝗚𝗛𝗧𝗪𝗜𝗦𝗛 』* ❒
+        return m.reply(`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ ✅ *KICK GUARDADO*
 │
 │ 📝 *Vista previa:*
@@ -32,13 +32,13 @@ const handler = async (m, { conn, text, command, isAdmin, isOwner }) => {
 ╰─────────────────❒`);
     }
     if (command === 'delkick') {
-        if (!chat.customKick) return m.reply(`╭─❒ *『 𝗧𝗘𝗔𝗠 𝗡𝗜𝗚𝗛𝗧𝗪𝗜𝗦𝗛 』* ❒
+        if (!chat.customKick) return m.reply(`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ ⚠️ *SIN KICK*
 │
-│ 🌙 *No tienes un kick personalizado*
+│ 🤖 *No tienes un kick personalizado*
 ╰─────────────────❒`);
         delete chat.customKick;
-        return m.reply(`╭─❒ *『 𝗧𝗘𝗔𝗠 𝗡𝗜𝗚𝗛𝗧𝗪𝗜𝗦𝗛 』* ❒
+        return m.reply(`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ ✅ *KICK ELIMINADO*
 │
 │ 🗑️ *Se borró el mensaje personalizado*
