@@ -6,7 +6,7 @@ const handler = async (m, { conn, args }) => {
     let authorName, text, pp;
 
     if (!args.length &&!(m.quoted && m.quoted.text)) {
-        throw "⚡ *RAYO PREM* ➔ Ingresa un texto para crear tu *quotly*.\n\n> Ejemplo:.qc Hola mundo\n> Ejemplo:.qc @user Nombre / Hola\n> Ejemplo:.qc Nombre / Hola";
+        throw "💻 *CYBER BOT* ➔ Ingresa un texto para crear tu *quotly*.\n\n> Ejemplo:.qc Hola mundo\n> Ejemplo:.qc @user Nombre / Hola\n> Ejemplo:.qc Nombre / Hola";
     }
 
     // 🔹 Caso extendido:.qc @user NombreAutor / Texto
@@ -23,7 +23,7 @@ const handler = async (m, { conn, args }) => {
         const [authorNameRaw,...textParts] = joined.split("/");
         authorName = authorNameRaw?.trim() || "Anónimo";
         text = textParts.join("/").trim();
-        // 📌 Foto fija Rayo Prem
+        // 📌 Foto fija Cyber Bot
         pp = "https://files.evogb.win/91Vvmc.jpg";
     }
     // 🔹 Caso simple:.qc <texto>
@@ -47,11 +47,11 @@ const handler = async (m, { conn, args }) => {
         pp = await conn.profilePictureUrl(m.sender, 'image').catch(_ => 'https://files.evogb.win/91Vvmc.jpg');
     }
     else {
-        return conn.reply(m.chat, "⚡ *RAYO PREM* ➔ Formato inválido.\n\n> Usa:.qc Hola mundo\n> Usa:.qc @user Nombre / Texto\n> Usa:.qc Nombre / Texto", m);
+        return conn.reply(m.chat, "💻 *CYBER BOT* ➔ Formato inválido.\n\n> Usa:.qc Hola mundo\n> Usa:.qc @user Nombre / Texto\n> Usa:.qc Nombre / Texto", m);
     }
 
-    if (!text) return conn.reply(m.chat, '⚡ *RAYO PREM* ➔ Ingresa un texto para el sticker.', m)
-    if (text.length > 30) return conn.reply(m.chat, '⚡ *RAYO PREM* ➔ Máximo 30 caracteres. El trueno es breve.', m)
+    if (!text) return conn.reply(m.chat, '💻 *CYBER BOT* ➔ Ingresa un texto para el sticker.', m)
+    if (text.length > 30) return conn.reply(m.chat, '💻 *CYBER BOT* ➔ Máximo 30 caracteres. El sistema es breve.', m)
 
     const obj = {
         "type": "quote",
@@ -73,7 +73,7 @@ const handler = async (m, { conn, args }) => {
         }]
     };
 
-    await conn.sendMessage(m.chat, { react: { text: "⚡", key: m.key } })
+    await conn.sendMessage(m.chat, { react: { text: "💻", key: m.key } })
 
     try {
         const json = await axios.post('https://btzqc.betabotz.eu.org/generate', obj, {
@@ -81,17 +81,17 @@ const handler = async (m, { conn, args }) => {
         });
 
         const buffer = Buffer.from(json.data.result.image, 'base64');
-        const stiker = await sticker(buffer, false, 'Team Nightwish', 'Whois Yallico'); // Cambiado marca
+        const stiker = await sticker(buffer, false, 'Cyber Bot', 'Whois Yallico'); // Cambiado marca
 
         if (stiker) {
-            await conn.sendFile(m.chat, stiker, 'RayoPrem.webp', '⚡ *Rayo Prem* | Quotly', m); // Cambiado caption
-            await conn.sendMessage(m.chat, { react: { text: "🌙", key: m.key } })
+            await conn.sendFile(m.chat, stiker, 'CyberBot.webp', '💻 *Cyber Bot* | Quotly', m); // Cambiado caption
+            await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key } })
         } else {
             await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } })
         }
     } catch (e) {
         console.error(e);
-        await conn.reply(m.chat, "⚡ *RAYO PREM ERROR* ➔ Falló al generar el sticker. Intenta de nuevo.", m);
+        await conn.reply(m.chat, "💻 *CYBER BOT ERROR* ➔ Falló al generar el sticker. Intenta de nuevo.", m);
         await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } })
     }
 }
