@@ -1,41 +1,85 @@
-import { WAMessageStubType, getContentType } from '@whiskeysockets/baileys';
+import { WAMessageStubType } from '@whiskeysockets/baileys';
 import fs from 'fs';
 import path from 'path';
 
+// ====== PARTE 1: COMANDOS PARA ACTIVAR/DESACTIVAR ======
+let handlerCommand = async (m, { conn, command, args }) => {
+    let chat = global.db.data.chats[m.chat]
+    if (!chat) chat = global.db.data.chats[m.chat] = {}
+
+    if (!args[0]) return m.reply(`💻 *CYBER BOT* ➔ Usa:.${command} on/off\n> Ejemplo:.${command} on`)
+
+    let estado = args[0].toLowerCase() === 'on'
+    chat[command] = estado
+
+    let nombre = command === 'welcome'? 'BIENVENIDAS' : command === 'bye'? 'DESPEDIDAS' : 'EXPULSIONES'
+
+    await m.reply(`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ ${estado? '✅ ACTIVADO' : '❌ DESACTIVADO'}
+│
+│ 💻 *Módulo:* ${nombre}
+│ ⚡ *Estado:* ${estado? 'ON' : 'OFF'}
+╰─────────────────❒`)
+}
+
+handlerCommand.help = ['welcome', 'bye', 'kick']
+handlerCommand.tags = ['group']
+handlerCommand.command = /^(welcome|bye|kick)$/i
+handlerCommand.admin = true
+handlerCommand.group = true
+
+// ====== PARTE 2: SISTEMA DE BIENVENIDA/DESPEDIDA/KICK ======
 export async function before(m, { conn }) {
-  if (!m.messageStubType ||!m.isGroup) return true;
+  try {
+    if (!m.messageStubType ||!m.isGroup) return true;
+    const chat = global.db?.data?.chats?.[m.chat];
+    if (!chat) global.db.data.chats[m.chat] = {}
 
-  const chat = global.db.data.chats[m.chat] || (global.db.data.chats[m.chat] = {});
-  chat.welcome??= true;
-  chat.bye??= true;
-  chat.kick??= true;
+    if (chat.welcome === undefined) chat.welcome = true
+    if (chat.bye === undefined) chat.bye = true
+    if (chat.kick === undefined) chat.kick = true
 
-  const groupMetadata = await conn.groupMetadata(m.chat).catch(() => null);
-  if (!groupMetadata) return true;
+    const groupMetadata = await conn.groupMetadata(m.chat).catch(_ => null);
+    if (!groupMetadata) return true;
 
-  const userJid = m.messageStubParameters?.[0];
-  if (!userJid) return true;
+    let userJid = m.messageStubParameters?.[0];
+    if (!userJid) return true;
 
-  // Arreglar @lid
-  let user = `@${userJid.split('@')[0]}`;
-  if (userJid.endsWith('@lid')) {
-    const res = await conn.onWhatsApp(userJid).catch(() => []);
-    if (res[0]?.jid) user = `@${res[0].jid.split('@')[0]}`;
-  }
+    let userName = userJid.split('@')[0];
+    if (userJid.endsWith('@lid')) {
+      try {
+        let info = await conn.onWhatsApp(userJid);
+        if (info[0]?.jid) userName = info[0].jid.split('@')[0];
+      } catch(e){}
+    }
+    const user = `@${userName}`;
 
-  const groupName = groupMetadata.subject || 'CYBER SYSTEM';
-  const groupDesc = groupMetadata.desc?.toString() || '📜 Sin descripción';
-  const groupMembers = groupMetadata.participants.length;
-  const defaultImageUrl = 'https://files.evogb.win/wX15Ie.jpg';
+    const groupName = groupMetadata.subject || 'CYBER SYSTEM';
+    const groupDesc = groupMetadata.desc?.toString() || '📜 Sin descripción';
+    const groupMembers = groupMetadata.participants.length;
 
-  let img, audioFile, text;
+    const fixedImageUrl = 'https://files.evogb.win/wX15Ie.jpg'; // Logo Cyber
 
-  // ====== DEFINIR MENSAJE ======
-  if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
-    if (!chat.welcome) return true;
-    audioFile = 'bienvenida.mp3';
-    text = chat.customWelcome?.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc) ||
-`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+    // [FIX FOTO] Metodo nativo baileys
+    let imgBuffer = null;
+    try {
+      let ppUrl = await conn.profilePictureUrl(userJid, 'image');
+      imgBuffer = await conn.downloadFile(ppUrl);
+    } catch(e){
+      try {
+        imgBuffer = await conn.downloadFile(fixedImageUrl); // Opcional
+      } catch(e2){}
+    }
+
+    let text = '', audioFile = '';
+
+    // ====== BIENVENIDA ======
+    if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
+      if (chat.welcome === false) return true
+      audioFile = 'bienvenida.ogg'; // <- TU AUDIO
+      text = chat.customWelcome
+? chat.customWelcome.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
+        : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ ⚡ *NUEVO NODO CONECTADO*
 │
 │ 🤖 *Usuario:* ${user}
@@ -44,13 +88,15 @@ export async function before(m, { conn }) {
 │ 📜 *Info:* ${groupDesc}
 │
 │ > *“Bienvenido al sistema. Protocolo iniciado”*
-╰─────────────────❒`;
+╰─────────────────❒`.trim();
 
-  } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
-    if (!chat.bye) return true;
-    audioFile = 'despedida.mp3';
-    text = chat.customBye?.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc) ||
-`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+    // ====== DESPEDIDA ======
+    } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
+      if (chat.bye === false) return true
+      audioFile = 'despedida.ogg';
+      text = chat.customBye
+? chat.customBye.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
+        : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ 💨 *NODO DESCONECTADO*
 │
 │ 🌫️ *Usuario:* ${user}
@@ -58,13 +104,15 @@ export async function before(m, { conn }) {
 │ 👥 *Restantes:* ${groupMembers}
 │
 │ > *“Conexión cerrada voluntariamente”*
-╰─────────────────❒`;
+╰─────────────────❒`.trim();
 
-  } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
-    if (!chat.kick) return true;
-    audioFile = 'kick.mp3';
-    text = chat.customKick?.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc) ||
-`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+    // ====== EXPULSIÓN ======
+    } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
+      if (chat.kick === false) return true
+      audioFile = 'kick.ogg';
+      text = chat.customKick
+? chat.customKick.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
+        : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ 🚮 *PROTOCOLO DE EXPULSIÓN*
 │
 │ 💣 *Usuario:* ${user}
@@ -73,37 +121,31 @@ export async function before(m, { conn }) {
 │ 👥 *Restantes:* ${groupMembers}
 │
 │ > *“Violación de protocolos detectada”*
-╰─────────────────❒`;
-  } else return true;
+╰─────────────────❒`.trim();
+    } else return true;
 
-  // ====== FOTO OPCIONAL ======
-  try {
-    const ppUrl = await conn.profilePictureUrl(userJid, 'image');
-    img = await conn.downloadFile(ppUrl); // Metodo nativo de baileys
-  } catch {
-    try {
-      img = await conn.downloadFile(defaultImageUrl); // Link opcional
-    } catch {}
-  }
+    // ENVIAR IMAGEN + TEXTO
+    if(imgBuffer){
+      await conn.sendMessage(m.chat, { image: imgBuffer, caption: text, mentions: [userJid] });
+    } else {
+      await conn.sendMessage(m.chat, { text: text, mentions: [userJid] });
+    }
 
-  // ====== ENVIAR ======
-  const sendOptions = { mentions: [userJid] };
-  if (img) sendOptions.image = img, sendOptions.caption = text;
-  else sendOptions.text = text;
+    // [FIX AUDIO] Para.ogg
+    const audioPath = path.join(process.cwd(), audioFile);
+    if (fs.existsSync(audioPath)) {
+      await new Promise(r => setTimeout(r, 1500));
+      await conn.sendMessage(m.chat, {
+        audio: fs.readFileSync(audioPath),
+        mimetype: 'audio/ogg; codecs=opus', // <- Para tu audio
+        ptt: true
+      });
+    }
 
-  await conn.sendMessage(m.chat, sendOptions);
-
-  // ====== AUDIO OPCIONAL ======
-  const audioPath = path.join(process.cwd(), audioFile);
-  if (fs.existsSync(audioPath)) {
-    setTimeout(async () => {
-      try {
-        await conn.sendMessage(m.chat, {
-          audio: fs.readFileSync(audioPath),
-          mimetype: 'audio/mp4', // mp4 jala mejor que mpeg para ptt
-          ptt: true
-        });
-      } catch (e) { console.log('[AUDIO ERROR]', e) }
-    }, 1500);
+  } catch (error) {
+    console.error('❌ Error en welcome:', error);
   }
 }
+
+export default handlerCommand
+export const disabled = false;
