@@ -1,83 +1,121 @@
-import { WAMessageStubType } from '@whiskeysockets/baileys';
-import fetch from 'node-fetch';
-import fs from 'fs';
-import path from 'path';
+import { WAMessageStubType } from '@whiskeysockets/baileys'
+import fetch from 'node-fetch'
+import fs from 'fs'
+import path from 'path'
 
-// ===== COMANDO ON/OFF =====
+// COMANDO PARA ACTIVAR/DESACTIVAR
 let handler = async (m, { conn, command, args }) => {
     if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
     let chat = global.db.data.chats[m.chat]
 
     if (!args[0]) {
         let w = chat.welcome? '✅ ON' : '❌ OFF'
-        let b = chat.bye? '✅ ON' : '❌ OFF'
+        let b = chat.bye? '✅ ON' : '❌ OFF' 
         let k = chat.kick? '✅ ON' : '❌ OFF'
-        return m.reply(`*CYBER BOT*\n\nWELCOME: ${w}\nBYE: ${b}\nKICK: ${k}\n\nUsa:.welcome on/off`)
-    }
+        return conn.reply(m.chat, `*『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』*
+        
+*ESTADO ACTUAL*
+Welcome: ${w}
+Bye: ${b}
+Kick: ${k}
 
-    chat[command] = args[0].toLowerCase() === 'on'
-    m.reply(`${command} ${chat[command]? 'ON' : 'OFF'}`)
+*USO:*.welcome on/off\n.bye on/off\n.kick on/off`, m)
+    }
+    
+    let estado = args[0].toLowerCase() === 'on'
+    chat[command] = estado
+    let nombre = command === 'welcome'? 'Bienvenidas' : command === 'bye'? 'Despedidas' : 'Expulsiones'
+    conn.reply(m.chat, `*${nombre}* ${estado? 'ACTIVADAS ✅' : 'DESACTIVADAS ❌'}`, m)
 }
+handler.help = ['welcome', 'bye', 'kick']
+handler.tags = ['group']
 handler.command = /^(welcome|bye|kick)$/i
 handler.admin = true
 handler.group = true
 export default handler
 
-
-// ===== SISTEMA =====
+// SISTEMA AUTOMATICO
 export async function before(m, { conn }) {
-  try {
-    if (!m.messageStubType ||!m.isGroup) return true;
+    if (!m.messageStubType) return
+    if (!m.isGroup) return
     if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
-    const chat = global.db.data.chats[m.chat];
-
-    const groupMetadata = await conn.groupMetadata(m.chat).catch(_ => null);
-    if (!groupMetadata) return true;
-
-    let userJid = m.messageStubParameters?.[0];
-    if (!userJid) return true;
-
-    let userName = userJid.split('@')[0];
-    const user = `@${userName}`;
-    const groupName = groupMetadata.subject || 'Sistema';
-    const groupMembers = groupMetadata.participants.length;
-    const fixedImageUrl = 'https://files.evogb.win/wX15Ie.jpg';
-
-    let imgBuffer = null;
+    let chat = global.db.data.chats[m.chat]
+    
+    let who = m.messageStubParameters[0]
+    if (!who) return
+    
+    let metadata = await conn.groupMetadata(m.chat)
+    let user = '@' + who.split('@')[0]
+    
+    // SACAR FOTO
+    let img
     try {
-      let ppUrl = await conn.profilePictureUrl(userJid, 'image').catch(_ => null);
-      if (ppUrl) imgBuffer = await fetch(ppUrl).then(res => res.buffer());
-    } catch(e){}
-    if (!imgBuffer) imgBuffer = await fetch(fixedImageUrl).then(res => res.buffer()).catch(_ => null);
-
-    let text = '', audioFile = '';
-
-    if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD && chat.welcome!= false) {
-      audioFile = './bienvenida.mp3';
-      text = `*CYBER BOT*\n⚡ BIENVENIDO: ${user}\n💻 Grupo: ${groupName}`;
-
-    } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE && chat.bye!= false) {
-      audioFile = './despedida.mp3';
-      text = `*CYBER BOT*\n💨 ADIOS: ${user}`;
-
-    } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE && chat.kick!= false) {
-      audioFile = './kick.mp3';
-      text = `*CYBER BOT*\n🚮 KICK: ${user}`;
-    } else return true;
-
-    await conn.sendMessage(m.chat, imgBuffer? { image: imgBuffer, caption: text, mentions: [userJid] } : { text, mentions: [userJid] });
-
-    const audioPath = path.resolve(audioFile);
-    if (fs.existsSync(audioPath)) {
-      await new Promise(r => setTimeout(r, 1500));
-      await conn.sendMessage(m.chat, {
-        audio: fs.readFileSync(audioPath),
-        mimetype: 'audio/mpeg',
-        ptt: false
-      });
+        let pp = await conn.profilePictureUrl(who, 'image')
+        img = await fetch(pp).then(v => v.buffer())
+    } catch {
+        img = await fetch('https://files.evogb.win/wX15Ie.jpg').then(v => v.buffer())
     }
 
-  } catch (error) {
-    console.error('Error:', error);
-  }
+    let txt = ''
+    let audio = ''
+
+    // BIENVENIDA
+    if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
+        if (chat.welcome === false) return
+        audio = 'bienvenida.mp3'
+        txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ ⚡ *NUEVO NODO CONECTADO*
+│
+│ 🤖 *Usuario:* ${user}
+│ 💻 *Sistema:* ${metadata.subject}
+│ 👥 *Miembros:* ${metadata.participants.length}
+│
+│ > *Bienvenido al sistema*
+╰─────────────────❒`
+    }
+    
+    // DESPEDIDA
+    if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
+        if (chat.bye === false) return
+        audio = 'despedida.mp3'
+        txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 💨 *NODO DESCONECTADO*
+│
+│ 🌫️ *Usuario:* ${user}
+│ 💻 *Sistema:* ${metadata.subject}
+│
+│ > *Conexión cerrada*
+╰─────────────────❒`
+    }
+    
+    // KICK
+    if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
+        if (chat.kick === false) return
+        audio = 'kick.mp3'
+        txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 🚮 *PROTOCOLO DE EXPULSIÓN*
+│
+│ 💣 *Usuario:* ${user}
+│ ⚡ *Acceso denegado*
+│ 💻 *Sistema:* ${metadata.subject}
+│
+│ > *Violación detectada*
+╰─────────────────❒`
+    }
+    
+    if (!txt) return
+    
+    // ENVIAR FOTO + TEXTO
+    await conn.sendMessage(m.chat, { image: img, caption: txt, mentions: [who] })
+    
+    // ENVIAR AUDIO
+    let audioPath = path.join(process.cwd(), audio)
+    if (fs.existsSync(audioPath)) {
+        setTimeout(async () => {
+            await conn.sendMessage(m.chat, {
+                audio: fs.readFileSync(audioPath),
+                mimetype: 'audio/mpeg'
+            })
+        }, 1500)
+    }
 }
