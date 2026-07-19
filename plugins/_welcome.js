@@ -3,11 +3,43 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
 
+// ====== PARTE 1: COMANDOS PARA ACTIVAR/DESACTIVAR ======
+let handlerCommand = async (m, { conn, command, args }) => {
+    let chat = global.db.data.chats[m.chat]
+    if (!chat) chat = global.db.data.chats[m.chat] = {}
+
+    if (!args[0]) return m.reply(`💻 *CYBER BOT* ➔ Usa:.${command} on/off\n> Ejemplo:.${command} on`)
+
+    let estado = args[0].toLowerCase() === 'on'
+    chat[command] = estado
+
+    let nombre = command === 'welcome'? 'BIENVENIDAS' : command === 'bye'? 'DESPEDIDAS' : 'EXPULSIONES'
+
+    await m.reply(`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ ${estado? '✅ ACTIVADO' : '❌ DESACTIVADO'}
+│
+│ 💻 *Módulo:* ${nombre}
+│ ⚡ *Estado:* ${estado? 'ON' : 'OFF'}
+╰─────────────────❒`)
+}
+
+handlerCommand.help = ['welcome', 'bye', 'kick']
+handlerCommand.tags = ['group']
+handlerCommand.command = /^(welcome|bye|kick)$/i
+handlerCommand.admin = true
+handlerCommand.group = true
+
+// ====== PARTE 2: SISTEMA DE BIENVENIDA/DESPEDIDA/KICK ======
 export async function before(m, { conn }) {
   try {
     if (!m.messageStubType ||!m.isGroup) return true;
     const chat = global.db?.data?.chats?.[m.chat];
-    if (!chat || chat.bienvenida === false) return true;
+    if (!chat) global.db.data.chats[m.chat] = {}
+
+    // Valores por defecto: todo ON
+    if (chat.welcome === undefined) chat.welcome = true
+    if (chat.bye === undefined) chat.bye = true
+    if (chat.kick === undefined) chat.kick = true
 
     const groupMetadata = await conn.groupMetadata(m.chat).catch(_ => null);
     if (!groupMetadata) return true;
@@ -20,95 +52,95 @@ export async function before(m, { conn }) {
     if (userJid.endsWith('@lid')) {
       try {
         let info = await conn.onWhatsApp(userJid);
-        userName = info[0]?.jid?.split('@')[0] || userName;
+        if (info[0]?.jid) userName = info[0].jid.split('@')[0];
       } catch(e){}
     }
     const user = `@${userName}`;
 
     // [DATOS DEL GRUPO]
-    const groupName = groupMetadata.subject || 'Mi Sistema';
-    const groupDesc = groupMetadata.desc?.toString() || '📜 Sin descripción';
+    const groupName = groupMetadata.subject || 'CYBER SYSTEM';
+    const groupDesc = groupMetadata.desc?.toString() || '📜 Sin descripción registrada';
     const groupMembers = groupMetadata.participants.length;
 
-    const fixedImageUrl = 'https://files.evogb.win/wX15Ie.jpg'; // [TU LOGO SOLO SI NO TIENE FOTO]
+    const fixedImageUrl = 'https://files.evogb.win/wX15Ie.jpg'; // [LOGO CYBER BOT]
 
-    // [FIX] 1. FOTO DEL USER PRIMERO
+    // [FOTO DEL USER]
     let imgBuffer = null;
     try {
       let ppUrl = await conn.profilePictureUrl(userJid, 'image').catch(_ => null);
       if (ppUrl) {
-        imgBuffer = await fetch(ppUrl).then(res => res.buffer()).catch(_ => null);
+        let res = await fetch(ppUrl).catch(_ => null);
+        if (res && res.ok) imgBuffer = await res.buffer();
       }
     } catch(e){}
 
-    // [FIX] 2. SI NO TIENE FOTO = LOGO
+    // [LOGO SI NO HAY FOTO]
     if (!imgBuffer) {
-      imgBuffer = await fetch(fixedImageUrl).then(res => res.buffer()).catch(_ => null);
+      let res = await fetch(fixedImageUrl).catch(_ => null);
+      if (res && res.ok) imgBuffer = await res.buffer();
     }
 
     let text = '', audioFile = '';
 
-    // [SWITCH DISEÑO CYBER BOT]
+    // ====== BIENVENIDA ======
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
+      if (chat.welcome === false) return true
       audioFile = './bienvenida.mp3';
       text = chat.customWelcome
- ? chat.customWelcome.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
+? chat.customWelcome.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
         : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ ⚡ *NUEVO USUARIO CONECTADO*
+│ ⚡ *NUEVO NODO CONECTADO*
 │
-│ 🤖 *Bienvenido:* ${user}
-│ ⚡ *Se ha conectado al sistema*
-│
+│ 🤖 *Usuario:* ${user}
 │ 💻 *Sistema:* ${groupName}
-│ 👥 *Usuarios:* ${groupMembers}
-│ 📜 *Descripción:* ${groupDesc}
+│ 👥 *Total:* ${groupMembers}
+│ 📜 *Info:* ${groupDesc}
 │
-│ > *“Nuevo nodo agregado al sistema”*
+│ > *“Bienvenido al sistema. Protocolo iniciado”*
 ╰─────────────────❒`.trim();
 
+    // ====== DESPEDIDA ======
     } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
+      if (chat.bye === false) return true
       audioFile = './despedida.mp3';
       text = chat.customBye
- ? chat.customBye.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
+? chat.customBye.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
         : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ 💨 *DESCONEXIÓN REGISTRADA*
+│ 💨 *NODO DESCONECTADO*
 │
-│ 🌫️ *Se desconectó:* ${user}
-│ ⚡ *Nodo fuera de línea*
-│
+│ 🌫️ *Usuario:* ${user}
 │ 💻 *Sistema:* ${groupName}
-│ 👥 *Quedan:* ${groupMembers}
-│ 📜 *Motivo:* Desconexión voluntaria
+│ 👥 *Restantes:* ${groupMembers}
 │
-│ > *“Nodo desconectado del sistema”*
+│ > *“Conexión cerrada voluntariamente”*
 ╰─────────────────❒`.trim();
 
+    // ====== EXPULSIÓN ======
     } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
+      if (chat.kick === false) return true
       audioFile = './kick.mp3';
       text = chat.customKick
- ? chat.customKick.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
+? chat.customKick.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
         : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ 🚮 *EXPULSIÓN EJECUTADA*
+│ 🚮 *PROTOCOLO DE EXPULSIÓN*
 │
-│ 💣 *Eliminado:* ${user}
-│ ⚡ *Protocolo de seguridad aplicado*
-│
+│ 💣 *Usuario:* ${user}
+│ ⚡ *Estado:* Acceso denegado
 │ 💻 *Sistema:* ${groupName}
-│ 👥 *Quedan:* ${groupMembers}
-│ 📜 *Motivo:* Violó protocolos del sistema
+│ 👥 *Restantes:* ${groupMembers}
 │
-│ > *“Acceso denegado por violación”*
+│ > *“Violación de protocolos detectada”*
 ╰─────────────────❒`.trim();
     } else return true;
 
-    // 1. MENSAJE 1: IMAGEN + TEXTO PRO
+    // ENVIAR IMAGEN + TEXTO
     if(imgBuffer){
       await conn.sendMessage(m.chat, { image: imgBuffer, caption: text, mentions: [userJid] });
     } else {
       await conn.sendMessage(m.chat, { text: text, mentions: [userJid] });
     }
 
-    // 2. MENSAJE 2: AUDIO CON BARRA
+    // ENVIAR AUDIO
     const audioPath = path.resolve(audioFile);
     if (fs.existsSync(audioPath)) {
       await new Promise(r => setTimeout(r, 1500));
@@ -116,11 +148,8 @@ export async function before(m, { conn }) {
       await conn.sendMessage(m.chat, {
         audio: audioBuffer,
         mimetype: 'audio/mpeg',
-        ptt: false
+        ptt: true
       });
-      console.log(`[WELCOME] ✅ Enviado: ${audioFile}`);
-    } else {
-      console.log(`[WELCOME] ❌ No existe: ${audioPath}`);
     }
 
   } catch (error) {
@@ -128,4 +157,5 @@ export async function before(m, { conn }) {
   }
 }
 
+export default handlerCommand
 export const disabled = false;
