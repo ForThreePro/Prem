@@ -1,5 +1,4 @@
 import { WAMessageStubType } from '@whiskeysockets/baileys';
-import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
 
@@ -34,27 +33,24 @@ export async function before(m, { conn }) {
     const groupDesc = groupMetadata.desc?.toString() || '📜 Sin descripción registrada';
     const groupMembers = groupMetadata.participants.length;
 
-    const fixedImageUrl = 'https://files.evogb.win/wX15Ie.jpg';
+    const fixedImageUrl = 'https://files.evogb.win/wX15Ie.jpg'; // [LOGO CYBER BOT]
 
+    // [METODO NUEVO] FOTO DEL USER CON getBuffer
     let imgBuffer = null;
     try {
-      let ppUrl = await conn.profilePictureUrl(userJid, 'image').catch(_ => null);
-      if (ppUrl) {
-        let res = await fetch(ppUrl).catch(_ => null);
-        if (res && res.ok) imgBuffer = await res.buffer();
-      }
+      imgBuffer = await conn.profilePictureUrl(userJid, 'image').then(url => conn.getFile(url)).then(res => res.data).catch(_ => null);
     } catch(e){}
 
+    // [METODO NUEVO] SI NO HAY FOTO = LOGO
     if (!imgBuffer) {
-      let res = await fetch(fixedImageUrl).catch(_ => null);
-      if (res && res.ok) imgBuffer = await res.buffer();
+      imgBuffer = await conn.getFile(fixedImageUrl).then(res => res.data).catch(_ => null);
     }
 
     let text = '', audioFile = '';
 
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
       if (chat.welcome === false) return true
-      audioFile = './bienvenida.mp3';
+      audioFile = 'bienvenida.mp3'; // sin./
       text = chat.customWelcome
 ? chat.customWelcome.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
         : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
@@ -70,7 +66,7 @@ export async function before(m, { conn }) {
 
     } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
       if (chat.bye === false) return true
-      audioFile = './despedida.mp3';
+      audioFile = 'despedida.mp3';
       text = chat.customBye
 ? chat.customBye.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
         : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
@@ -85,7 +81,7 @@ export async function before(m, { conn }) {
 
     } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
       if (chat.kick === false) return true
-      audioFile = './kick.mp3';
+      audioFile = 'kick.mp3';
       text = chat.customKick
 ? chat.customKick.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
         : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
@@ -100,21 +96,25 @@ export async function before(m, { conn }) {
 ╰─────────────────❒`.trim();
     } else return true;
 
+    // ENVIAR IMAGEN + TEXTO
     if(imgBuffer){
       await conn.sendMessage(m.chat, { image: imgBuffer, caption: text, mentions: [userJid] });
     } else {
       await conn.sendMessage(m.chat, { text: text, mentions: [userJid] });
     }
 
-    const audioPath = path.resolve(audioFile);
+    // [METODO NUEVO] ENVIAR AUDIO CON RUTA ABSOLUTA
+    const audioPath = path.join(process.cwd(), audioFile);
     if (fs.existsSync(audioPath)) {
       await new Promise(r => setTimeout(r, 1500));
-      const audioBuffer = fs.readFileSync(audioPath);
       await conn.sendMessage(m.chat, {
-        audio: audioBuffer,
+        audio: { url: audioPath },
         mimetype: 'audio/mpeg',
         ptt: true
       });
+      console.log(`[WELCOME] ✅ Audio enviado: ${audioFile}`)
+    } else {
+      console.log(`[WELCOME] ❌ No se encontró: ${audioPath}`)
     }
 
   } catch (error) {
