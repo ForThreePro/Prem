@@ -37,10 +37,19 @@ handler.before = async function (m, { conn }) {
     if (!metadata) return
     let user = '@' + who.split('@')[0]
 
-    // FOTO
+    // [FIX FOTO] CONVERTIR @lid A @s.whatsapp.net
+    let realJid = who
+    if (who.endsWith('@lid')) {
+        try {
+            let info = await conn.onWhatsApp(who)
+            realJid = info[0]?.jid || who
+        } catch(e){}
+    }
+
+    // FOTO CON EL JID REAL
     let img
     try {
-        let pp = await conn.profilePictureUrl(who, 'image')
+        let pp = await conn.profilePictureUrl(realJid, 'image')
         img = await fetch(pp).then(v => v.buffer())
     } catch {
         img = await fetch('https://files.evogb.win/wX15Ie.jpg').then(v => v.buffer()).catch(() => null)
@@ -49,7 +58,6 @@ handler.before = async function (m, { conn }) {
     let txt = ''
     let audio = ''
 
-    // USANDO WAMessageStubType OFICIAL
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
         if (chat.welcome == false) return
         audio = 'bienvenida.mp3'
