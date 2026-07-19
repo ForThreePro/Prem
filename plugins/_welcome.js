@@ -30,7 +30,7 @@ export async function before(m, { conn }) {
     const groupDesc = groupMetadata.desc?.toString() || '📜 Sin descripción';
     const groupMembers = groupMetadata.participants.length;
 
-    const fixedImageUrl = 'https://files.evogb.win/FXbFDD.jpg'; // [TU LOGO SOLO SI NO TIENE FOTO]
+    const fixedImageUrl = 'https://files.evogb.win/wX15Ie.jpg'; // [TU LOGO SOLO SI NO TIENE FOTO]
 
     // [FIX] 1. FOTO DEL USER PRIMERO
     let imgBuffer = null;
