@@ -32,19 +32,20 @@ export async function before(m, { conn }) {
     const groupDesc = groupMetadata.desc?.toString() || '📜 Sin descripción registrada';
     const groupMembers = groupMetadata.participants.length;
 
-    const fixedImageUrl = 'https://files.evogb.win/wX15Ie.jpg';
+    const defaultImageUrl = 'https://files.evogb.win/wX15Ie.jpg'; // [OPCIONAL]
 
-    // FOTO: método que nunca falla
+    // [FIX FOTO] Intentar foto de user, si falla = link opcional
     let imgBuffer = null;
     try {
-      let ppUrl = await conn.profilePictureUrl(userJid, 'image').catch(_ => null);
-      if (ppUrl) imgBuffer = await (await fetch(ppUrl)).buffer();
-    } catch(e){}
-
-    if (!imgBuffer) {
+      let ppUrl = await conn.profilePictureUrl(userJid, 'image');
+      let res = await fetch(ppUrl, {timeout: 5000});
+      if(res.ok) imgBuffer = await res.buffer();
+    } catch(e){
+      console.log('[WELCOME] No tiene foto, usando default')
       try {
-        imgBuffer = await (await fetch(fixedImageUrl)).buffer();
-      } catch(e){}
+        let res = await fetch(defaultImageUrl, {timeout: 5000});
+        if(res.ok) imgBuffer = await res.buffer();
+      } catch(e2){}
     }
 
     let text = '', audioFile = '';
@@ -75,7 +76,7 @@ export async function before(m, { conn }) {
 │
 │ 🌫️ *Usuario:* ${user}
 │ 💻 *Sistema:* ${groupName}
-│ 👥 *Restantes:* {groupMembers}
+│ 👥 *Restantes:* ${groupMembers}
 │
 │ > *“Conexión cerrada voluntariamente”*
 ╰─────────────────❒`.trim();
@@ -97,27 +98,32 @@ export async function before(m, { conn }) {
 ╰─────────────────❒`.trim();
     } else return true;
 
-    // ENVIAR IMAGEN + TEXTO
+    // [FIX ENVIO] Si hay imagen manda imagen, si no solo texto
     if(imgBuffer){
       await conn.sendMessage(m.chat, { image: imgBuffer, caption: text, mentions: [userJid] });
     } else {
       await conn.sendMessage(m.chat, { text: text, mentions: [userJid] });
     }
 
-    // AUDIO: RUTA DESDE RAIZ - ESTA ES LA CLAVE
+    // [FIX AUDIO] Si existe el archivo lo manda, si no lo ignora
     const audioPath = path.join(process.cwd(), audioFile);
     if (fs.existsSync(audioPath)) {
-      await new Promise(r => setTimeout(r, 1500));
-      await conn.sendMessage(m.chat, {
-        audio: fs.readFileSync(audioPath),
-        mimetype: 'audio/mpeg',
-        ptt: true
-      });
+      try {
+        await new Promise(r => setTimeout(r, 1500));
+        await conn.sendMessage(m.chat, {
+          audio: fs.readFileSync(audioPath),
+          mimetype: 'audio/mpeg',
+          ptt: true
+        });
+        console.log(`[WELCOME] ✅ Audio enviado: ${audioFile}`)
+      } catch(e){
+        console.log(`[WELCOME] ❌ Error enviando audio: ${e}`)
+      }
     } else {
-      console.log(`[ERROR] No se encontro: ${audioPath}`)
+      console.log(`[WELCOME] ⚠️ No existe: ${audioPath}`)
     }
 
   } catch (error) {
-    console.error('❌ Error en welcome:', error);
+    console.error('❌ Error general en welcome:', error);
   }
 }
