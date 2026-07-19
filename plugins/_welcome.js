@@ -66,7 +66,7 @@ export async function before(m, { conn, isAdmin, isBotAdmin }) {
 
     if (m.messageStubType === 27) { // 27 = ADD
         if (chat.welcome === false) return;
-        audioFile = 'bienvenida.ogg';
+        audioFile = 'bienvenida.mp3';
         text = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ ⚡ *NUEVO NODO CONECTADO*
 │
@@ -80,7 +80,7 @@ export async function before(m, { conn, isAdmin, isBotAdmin }) {
 
     } else if (m.messageStubType === 28) { // 28 = LEAVE
         if (chat.bye === false) return;
-        audioFile = 'despedida.ogg';
+        audioFile = 'despedida.mp3';
         text = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ 💨 *NODO DESCONECTADO*
 │
@@ -93,7 +93,7 @@ export async function before(m, { conn, isAdmin, isBotAdmin }) {
 
     } else if (m.messageStubType === 32) { // 32 = KICK
         if (chat.kick === false) return;
-        audioFile = 'kick.ogg';
+        audioFile = 'kick.mp3';
         text = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ 🚮 *PROTOCOLO DE EXPULSIÓN*
 │
@@ -119,7 +119,7 @@ export async function before(m, { conn, isAdmin, isBotAdmin }) {
         setTimeout(async () => {
             await conn.sendMessage(m.chat, {
                 audio: fs.readFileSync(audioPath),
-                mimetype: 'audio/ogg; codecs=opus',
+                mimetype: 'audio/mp3; codecs=opus',
                 ptt: true
             });
         }, 1500);
