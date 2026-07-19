@@ -1,11 +1,11 @@
+import { WAMessageStubType } from '@whiskeysockets/baileys'
 import fetch from 'node-fetch'
 import fs from 'fs'
 import path from 'path'
 
-// DETECTOR DE ENTRADAS/SALIDAS
-let handler = async (m, { conn, command, args, isAdmin }) => {
+// COMANDOS
+let handler = async (m, { conn, command, args }) => {
     if (!m.isGroup) return m.reply('Solo grupos')
-
     if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
     let chat = global.db.data.chats[m.chat]
 
@@ -16,18 +16,15 @@ let handler = async (m, { conn, command, args, isAdmin }) => {
         return conn.reply(m.chat, `*『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』*\n\nWelcome: ${w}\nBye: ${b}\nKick: ${k}\n\nUso:.welcome on/off`, m)
     }
 
-    let estado = args[0].toLowerCase() === 'on'
-    chat[command] = estado
-    m.reply(`${command.toUpperCase()} ${estado? 'ACTIVADO ✅' : 'DESACTIVADO ❌'}`)
+    chat[command] = args[0].toLowerCase() === 'on'
+    m.reply(`${command.toUpperCase()} ${chat[command]? 'ACTIVADO ✅' : 'DESACTIVADO ❌'}`)
 }
-handler.help = ['welcome', 'bye', 'kick']
-handler.tags = ['group']
 handler.command = /^(welcome|bye|kick)$/i
 handler.admin = true
 handler.group = true
 export default handler
 
-// ESTO HACE QUE DETECTE LAS ENTRADAS
+// DETECTOR
 handler.before = async function (m, { conn }) {
     if (!m.messageStubType ||!m.isGroup) return
     if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
@@ -52,35 +49,36 @@ handler.before = async function (m, { conn }) {
     let txt = ''
     let audio = ''
 
-    if (m.messageStubType == 27) { // ENTRA
-        if (chat.welcome === false) return
+    // USANDO WAMessageStubType OFICIAL
+    if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
+        if (chat.welcome == false) return
         audio = 'bienvenida.mp3'
         txt = `*CYBER BOT*\n⚡ BIENVENIDO: ${user}\n💻 ${metadata.subject}\n👥 Miembros: ${metadata.participants.length}`
     }
 
-    if (m.messageStubType == 28) { // SALE
-        if (chat.bye === false) return
+    if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
+        if (chat.bye == false) return
         audio = 'despedida.mp3'
         txt = `*CYBER BOT*\n💨 ADIOS: ${user}`
     }
 
-    if (m.messageStubType == 32) { // KICK
-        if (chat.kick === false) return
+    if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
+        if (chat.kick == false) return
         audio = 'kick.mp3'
         txt = `*CYBER BOT*\n🚮 EXPULSADO: ${user}`
     }
 
     if (!txt) return
 
-    // MANDAR
     await conn.sendMessage(m.chat, img? { image: img, caption: txt, mentions: [who] } : { text: txt, mentions: [who] })
 
-    // AUDIO
     let audioPath = path.join(process.cwd(), audio)
     if (fs.existsSync(audioPath)) {
-        await conn.sendMessage(m.chat, {
-            audio: fs.readFileSync(audioPath),
-            mimetype: 'audio/mpeg'
-        })
+        setTimeout(async () => {
+            await conn.sendMessage(m.chat, {
+                audio: fs.readFileSync(audioPath),
+                mimetype: 'audio/mpeg'
+            })
+        }, 1500)
     }
 }
