@@ -1,143 +1,131 @@
-import { WAMessageStubType } from '@whiskeysockets/baileys'
-import fetch from 'node-fetch'
-import fs from 'fs'
-import path from 'path'
+import { WAMessageStubType } from '@whiskeysockets/baileys';
+import fetch from 'node-fetch';
+import fs from 'fs';
+import path from 'path';
 
-// COMANDOS
-let handler = async (m, { conn, command, args }) => {
-    if (!m.isGroup) return m.reply('Solo grupos')
-    if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
-    let chat = global.db.data.chats[m.chat]
+export async function before(m, { conn }) {
+  try {
+    if (!m.messageStubType ||!m.isGroup) return true;
+    const chat = global.db?.data?.chats?.[m.chat];
+    if (!chat || chat.bienvenida === false) return true;
 
-    if (!args[0]) {
-        let w = chat.welcome? '🟢 ACTIVO' : '🔴 DESACTIVO'
-        let b = chat.bye? '🟢 ACTIVO' : '🔴 DESACTIVO'
-        let k = chat.kick? '🟢 ACTIVO' : '🔴 DESACTIVO'
-        return conn.reply(m.chat, `╭─❒ 「 𝗖𝗬𝗕𝗘𝗥 𝗦𝗬𝗦𝗧𝗘𝗠 」❒
-│
-│ ⚙️ *CONFIGURACION ACTUAL*
-│
-│ 1. *WELCOME* : ${w}
-│ 2. *BYE* : ${b}
-│ 3. *KICK* : ${k}
-│
-│ *COMANDOS*
-│.welcome on/off
-│.bye on/off
-│.kick on/off
-│
-╰────────────────❒`, m)
+    const groupMetadata = await conn.groupMetadata(m.chat).catch(_ => null);
+    if (!groupMetadata) return true;
+
+    let userJid = m.messageStubParameters?.[0];
+    if (!userJid) return true;
+
+    // [FIX @lid -> @numero]
+    let userName = userJid.split('@')[0];
+    if (userJid.endsWith('@lid')) {
+      try {
+        let info = await conn.onWhatsApp(userJid);
+        userName = info[0]?.jid?.split('@')[0] || userName;
+      } catch(e){}
     }
+    const user = `@${userName}`;
 
-    chat[command] = args[0].toLowerCase() === 'on'
-    let icon = chat[command]? '🟢' : '🔴'
-    let nombre = command === 'welcome'? 'BIENVENIDAS' : command === 'bye'? 'DESPEDIDAS' : 'EXPULSIONES'
-    m.reply(`${icon} *${nombre}* ${chat[command]? 'ACTIVADAS' : 'DESACTIVADAS'}`)
-}
-handler.command = /^(welcome|bye|kick)$/i
-handler.admin = true
-handler.group = true
-export default handler
+    // [DATOS DEL GRUPO]
+    const groupName = groupMetadata.subject || 'Mi Sistema';
+    const groupDesc = groupMetadata.desc?.toString() || '📜 Sin descripción';
+    const groupMembers = groupMetadata.participants.length;
 
-// DETECTOR
-handler.before = async function (m, { conn }) {
-    if (!m.messageStubType ||!m.isGroup) return
-    if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
-    let chat = global.db.data.chats[m.chat]
+    const fixedImageUrl = 'https://files.evogb.win/wX15Ie.jpg'; // [TU LOGO SOLO SI NO TIENE FOTO]
 
-    let who = m.messageStubParameters?.[0]
-    if (!who) return
-
-    let metadata = await conn.groupMetadata(m.chat).catch(() => null)
-    if (!metadata) return
-    let user = '@' + who.split('@')[0]
-
-    // FIX @lid
-    let realJid = who
-    if (who.endsWith('@lid')) {
-        try {
-            let info = await conn.onWhatsApp(who)
-            realJid = info[0]?.jid || who
-        } catch(e){}
-    }
-
-    // FOTO
-    let img
+    // [FIX] 1. FOTO DEL USER PRIMERO
+    let imgBuffer = null;
     try {
-        let pp = await conn.profilePictureUrl(realJid, 'image')
-        img = await fetch(pp).then(v => v.buffer())
-    } catch {
-        img = await fetch('https://files.evogb.win/wX15Ie.jpg').then(v => v.buffer()).catch(() => null)
+      let ppUrl = await conn.profilePictureUrl(userJid, 'image').catch(_ => null);
+      if (ppUrl) {
+        imgBuffer = await fetch(ppUrl).then(res => res.buffer()).catch(_ => null);
+      }
+    } catch(e){}
+
+    // [FIX] 2. SI NO TIENE FOTO = LOGO
+    if (!imgBuffer) {
+      imgBuffer = await fetch(fixedImageUrl).then(res => res.buffer()).catch(_ => null);
     }
 
-    let txt = ''
-    let audio = ''
+    let text = '', audioFile = '';
 
-    // WELCOME
+    // [SWITCH DISEÑO CYBER BOT]
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
-        if (chat.welcome == false) return
-        audio = 'bienvenida.mp3'
-        txt = `╭━━━〔 ⚡ 𝗡𝗨𝗘𝗩𝗢 𝗡𝗢𝗗𝗢 〕━━━╮
-┃
-┃ 🤖 *USUARIO* : ${user}
-┃ 💻 *SISTEMA* : ${metadata.subject}
-┃ 👥 *MIEMBROS*: ${metadata.participants.length}
-┃ 📡 *ESTADO* : CONECTADO
-┃
-┃ 📜 *${metadata.desc || 'Sin descripción'}*
-┃
-┃ > *"Bienvenido al Sistema Cyber"*
-╰━━━━━━━━━━━━━━╯`
+      audioFile = './bienvenida.mp3';
+      text = chat.customWelcome
+ ? chat.customWelcome.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
+        : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ ⚡ *NUEVO USUARIO CONECTADO*
+│
+│ 🤖 *Bienvenido:* ${user}
+│ ⚡ *Se ha conectado al sistema*
+│
+│ 💻 *Sistema:* ${groupName}
+│ 👥 *Usuarios:* ${groupMembers}
+│ 📜 *Descripción:* ${groupDesc}
+│
+│ > *“Nuevo nodo agregado al sistema”*
+╰─────────────────❒`.trim();
+
+    } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
+      audioFile = './despedida.mp3';
+      text = chat.customBye
+ ? chat.customBye.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
+        : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 💨 *DESCONEXIÓN REGISTRADA*
+│
+│ 🌫️ *Se desconectó:* ${user}
+│ ⚡ *Nodo fuera de línea*
+│
+│ 💻 *Sistema:* ${groupName}
+│ 👥 *Quedan:* ${groupMembers}
+│ 📜 *Motivo:* Desconexión voluntaria
+│
+│ > *“Nodo desconectado del sistema”*
+╰─────────────────❒`.trim();
+
+    } else if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
+      audioFile = './kick.mp3';
+      text = chat.customKick
+ ? chat.customKick.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@count/gi, groupMembers).replace(/@desc/gi, groupDesc)
+        : `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ 🚮 *EXPULSIÓN EJECUTADA*
+│
+│ 💣 *Eliminado:* ${user}
+│ ⚡ *Protocolo de seguridad aplicado*
+│
+│ 💻 *Sistema:* ${groupName}
+│ 👥 *Quedan:* ${groupMembers}
+│ 📜 *Motivo:* Violó protocolos del sistema
+│
+│ > *“Acceso denegado por violación”*
+╰─────────────────❒`.trim();
+    } else return true;
+
+    // 1. MENSAJE 1: IMAGEN + TEXTO PRO
+    if(imgBuffer){
+      await conn.sendMessage(m.chat, { image: imgBuffer, caption: text, mentions: [userJid] });
+    } else {
+      await conn.sendMessage(m.chat, { text: text, mentions: [userJid] });
     }
 
-    // BYE
-    if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
-        if (chat.bye == false) return
-        audio = 'despedida.mp3'
-        txt = `╭━━━〔 💨 𝗗𝗘𝗦𝗖𝗢𝗡𝗘𝗫𝗜𝗢𝗡 〕━━━╮
-┃
-┃ 🌫️ *USUARIO* : ${user}
-┃ 💻 *SISTEMA* : ${metadata.subject}
-┃ 👥 *QUEDAN* : ${metadata.participants.length}
-┃ 📡 *ESTADO* : DESCONECTADO
-┃
-┃ > *"Nodo fuera de línea"*
-╰━━━━━━━━━━━━━━╯`
-    }
-
-    // KICK
-    if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
-        if (chat.kick == false) return
-        audio = 'kick.mp3'
-        txt = `╭━━━〔 🚨 𝗘𝗫𝗣𝗨𝗟𝗦𝗜𝗢𝗡 〕━━━╮
-┃
-┃ 💣 *USUARIO* : ${user}
-┃ ⚡ *PROTOCOLO*: SEGURIDAD
-┃ 💻 *SISTEMA* : ${metadata.subject}
-┃ 👥 *QUEDAN* : ${metadata.participants.length}
-┃
-┃ > *"Acceso denegado. Violación"*
-╰━━━━━━━━━━━━━━━━━━━━━━╯`
-    }
-
-    if (!txt) return
-
-    // MANDAR
-    await conn.sendMessage(m.chat, {
-        image: img,
-        caption: txt,
-        mentions: [who]
-    })
-
-    // AUDIO
-    let audioPath = path.join(process.cwd(), audio)
+    // 2. MENSAJE 2: AUDIO CON BARRA
+    const audioPath = path.resolve(audioFile);
     if (fs.existsSync(audioPath)) {
-        setTimeout(async () => {
-            await conn.sendMessage(m.chat, {
-                audio: fs.readFileSync(audioPath),
-                mimetype: 'audio/mpeg',
-                ptt: false
-            })
-        }, 1500)
+      await new Promise(r => setTimeout(r, 1500));
+      const audioBuffer = fs.readFileSync(audioPath);
+      await conn.sendMessage(m.chat, {
+        audio: audioBuffer,
+        mimetype: 'audio/mpeg',
+        ptt: false
+      });
+      console.log(`[WELCOME] ✅ Enviado: ${audioFile}`);
+    } else {
+      console.log(`[WELCOME] ❌ No existe: ${audioPath}`);
     }
+
+  } catch (error) {
+    console.error('❌ Error en welcome:', error);
+  }
 }
+
+export const disabled = false;
