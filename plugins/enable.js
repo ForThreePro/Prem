@@ -16,9 +16,6 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
 │ > *“Ingresa un parametro valido”* 🤖
 ╰─────────────────❒`)
 
-  if (!chat) global.db.data.chats[m.chat] = {}
-  if (!bot) global.db.data.settings[conn.user.jid] = {}
-
   let fail = false
   switch (type) {
     case 'welcome': case 'bienvenida':
@@ -36,10 +33,6 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
     case 'antilink':
       if (m.isGroup &&!isAdmin) { global.dfail('admin', m, conn); fail = true; break }
       chat.antiLink = isEnable
-      break
-    case 'detect':
-      if (m.isGroup &&!isAdmin) { global.dfail('admin', m, conn); fail = true; break }
-      chat.detect = isEnable
       break
     case 'antibot':
       if (m.isGroup &&!isAdmin) { global.dfail('admin', m, conn); fail = true; break }
@@ -70,12 +63,12 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
 
   if (fail) return
 
-  const pathImg = join(process.cwd(), 'storage', 'img', 'cyber.jpg')
-  let cyberImg
+  const pathImg = join(process.cwd(), 'storage', 'img', 'rayo.jpg')
+  let rayoImg
   if (existsSync(pathImg)) {
-    cyberImg = readFileSync(pathImg)
+    rayoImg = readFileSync(pathImg)
   } else {
-    cyberImg = { url: 'https://files.catbox.moe/t7uytz.png' }
+    rayoImg = { url: 'https://files.catbox.moe/t7uytz.png' }
   }
 
   let estadoTexto = isEnable? 'ACTIVADO ⚡' : 'DESACTIVADO ❌'
@@ -90,18 +83,14 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
 ╰─────────────────❒`
 
   await conn.sendMessage(m.chat, {
-    image: cyberImg.byteLength? cyberImg : { url: cyberImg.url },
+    image: rayoImg.byteLength? rayoImg : { url: rayoImg.url },
     caption: statusTxt,
     mentions: [m.sender]
   }, { quoted: m })
-
-  // GUARDAR LA BASE DE DATOS
-  if (global.db.write) await global.db.write()
 }
 
-handler.help = ['welcome', 'antilink', 'antibot', 'modoadmin', 'subbots', 'nsfw', 'audios', 'antiprivado', 'detect'].map(v => v + ' on/off')
+handler.help = ['welcome', 'antilink', 'antibot', 'modoadmin', 'subbots', 'nsfw', 'audios', 'antiprivado'].map(v => v + ' on/off')
 handler.tags = ['config']
-handler.command = ['welcome', 'bienvenida', 'subbots', 'serbot', 'antispam', 'antilink', 'antibot', 'modoadmin', 'nsfw', 'antinopor', 'audios', 'autoleer', 'autoread', 'antiprivado', 'detect']
-handler.group = true
+handler.command = ['welcome', 'bienvenida', 'subbots', 'serbot', 'antispam', 'antilink', 'antibot', 'modoadmin', 'nsfw', 'antinopor', 'audios', 'autoleer', 'autoread', 'antiprivado']
 
 export default handler
