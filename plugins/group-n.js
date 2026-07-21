@@ -61,7 +61,7 @@ handler.before = async (m, { conn, isAdmin }) => {
     }
 };
 
-handler.help = ['mute ( Reacciona Al Mensaje )', 'unmute ( Reacciona Al Mensaje )'].map(v => v + ' @user');
+handler.help = ['mute', 'unmute'].map(v => v + ' Reacciona Al Mensaje');
 handler.tags = ['grupos'];
 handler.command = /^(mute|unmute)$/i;
 handler.group = true;
