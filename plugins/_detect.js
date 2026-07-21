@@ -95,38 +95,10 @@ handler.before = async function (m, { conn, groupMetadata }) {
 │ > *“Acceso de administrador revocado”* ⚡
 ╰─────────────────❒`; break
 
-        case WAMessageStubType.GROUP_PARTICIPANT_ADD:
-            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ 🤖 *NUEVO USUARIO CONECTADO*
-│
-│ 🔥 *Bienvenido:* @${m.messageStubParameters[0].split('@')[0]}
-│ 💻 *Sistema:* ${group}
-│ ⚡ *Estado:* Conexión registrada
-│
-│ > *“Nuevo nodo agregado al sistema”* ⚡
-╰─────────────────❒`; break
-
-        case WAMessageStubType.GROUP_PARTICIPANT_LEAVE:
-            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ 💨 *DESCONEXIÓN REGISTRADA*
-│
-│ 😔 *Se fue:* @${m.messageStubParameters[0].split('@')[0]}
-│ 💻 *Sistema:* ${group}
-│ 🌫️ *Estado:* Abandonó el sistema
-│
-│ > *“Nodo desconectado”* 🤖
-╰─────────────────❒`; break
-
-        case WAMessageStubType.GROUP_PARTICIPANT_REMOVE:
-            txt = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
-│ 🚮 *EXPULSIÓN EJECUTADA*
-│
-│ 💣 *Eliminado:* @${m.messageStubParameters[0].split('@')[0]}
-│ 👤 *Por orden de:* ${usuario}
-│ ⚡ *Causa:* Violación de protocolos
-│
-│ > *“Protocolo de seguridad aplicado”* 🤖
-╰─────────────────❒`; break
+        // ELIMINADOS: WELCOME / BYE / KICK
+        // case WAMessageStubType.GROUP_PARTICIPANT_ADD:
+        // case WAMessageStubType.GROUP_PARTICIPANT_LEAVE:
+        // case WAMessageStubType.GROUP_PARTICIPANT_REMOVE:
     }
 
     if (txt) {
