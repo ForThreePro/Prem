@@ -5,7 +5,7 @@ let handler = async (m, { conn, command, participants }) => {
     if (!mentionedJid) return m.reply(`╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
 │ ⚡ *ERROR DE SISTEMA*
 │
-│ 🚩 *USO:* Etiqueta a un usuario o responde a un mensaje
+│ 🚩 *USO:* Responde a un mensaje
 │
 │ > *“Protocolo de muteo requiere objetivo”* 🤖
 ╰─────────────────❒`);
@@ -61,7 +61,7 @@ handler.before = async (m, { conn, isAdmin }) => {
     }
 };
 
-handler.help = ['mute', 'unmute'].map(v => v + ' @user');
+handler.help = ['mute ( Reacciona Al Mensaje )', 'unmute ( Reacciona Al Mensaje )'].map(v => v + ' @user');
 handler.tags = ['grupos'];
 handler.command = /^(mute|unmute)$/i;
 handler.group = true;
