@@ -47,22 +47,78 @@ let handler = async (m, { conn, command, text }) => {
   }
 
   let respuestaFinal = respuestas[command.toLowerCase()];
-
   if (respuestaFinal) {
-    await conn.sendMessage(m.chat, {
-      text: respuestaFinal,
-      mentions: [who]
-    }, { quoted: m });
+    return await conn.sendMessage(m.chat, { text: respuestaFinal, mentions: [who] }, { quoted: m });
+  }
+
+  // ===== JUEGOS =====
+  if(command == 'ppt') {
+    let opciones = ['piedra', 'papel', 'tijera']
+    let bot = opciones[Math.floor(Math.random()*3)]
+    return m.reply(`✊✋✌️ *PIEDRA PAPEL O TIJERA*\n\nYo saqué: *${bot}*\nUsa.piedra.papel o.tijera para jugar`)
+  }
+
+  if(command == 'dado') {
+    return m.reply(`🎲 *LANZASTE EL DADO*\n\n*${name}* sacó: *${Math.floor(Math.random()*6)+1}*`)
+  }
+
+  if(command == 'ruleta') {
+    let premios = ['S/50', 'Un beso', 'Lavar platos', 'Pagar la cerveza', 'Nada F', 'Yape de 5 lucas']
+    return m.reply(`🎡 *RULETA DE LA SUERTE*\n\n*${name}* ganó: *${premios[Math.floor(Math.random()*premios.length)]}*`)
+  }
+
+  if(command == 'ship') {
+    let targets = m.mentionedJid
+    if(targets.length < 2) return m.reply('Menciona a 2 personas oe\nEjemplo:.ship @Maria @Juan')
+    let name1 = await conn.getName(targets[0])
+    let name2 = await conn.getName(targets[1])
+    let porcentaje = Math.floor(Math.random()*100)+1
+    let resultado = porcentaje > 90? 'ALMAS GEMELAS 💍' : porcentaje > 70? 'Hay química 🔥' : porcentaje > 50? 'Si hay futuro ❤️' : porcentaje > 30? 'Solo amigos xd' : 'Ni agua y aceite 😂'
+    return m.reply(`💘 *SHIP SCANNER*\n\n*${name1}* + *${name2}*\nCompatibilidad: *${porcentaje}%*\n${resultado}`)
+  }
+
+  if(command == 'ahorcado') {
+    return m.reply(`🔤 *AHORCADO*\n\nAdivina la palabra: _\nPista: Fruta peruana\nTienes 5 intentos. Usa.letra A`)
+  }
+
+  if(command == 'adivina') {
+    let num = Math.floor(Math.random()*10)+1
+    global.adivina = num
+    return m.reply(`🔢 *ADIVINA EL NÚMERO*\n\nDel 1 al 10. Tienes 3 intentos\nUsa.numero 5`)
+  }
+
+  if(command == 'mentira') {
+    return m.reply(`🤥 *DETECTOR DE MENTIRAS*\n\n*${name}* miente *${Math.floor(Math.random()*100)}%*\nNo le creas nada`)
+  }
+
+  if(command == 'tragamonedas') {
+    let slots = ['🍒','🍋','💎','7️⃣','🍀']
+    let r1 = slots[Math.floor(Math.random()*5)]
+    let r2 = slots[Math.floor(Math.random()*5)]
+    let r3 = slots[Math.floor(Math.random()*5)]
+    let gano = r1 == r2 && r2 == r3
+    return m.reply(`🎰 *TRAGAMONEDAS*\n\n| ${r1} | ${r2} | ${r3} |\n${gano? 'JACKPOT!! GANASTE 💰' : 'Sigue intentando'}`)
+  }
+
+  if(command == 'reto') {
+    let retos = ['Manda audio cantando','Manda foto sin filtro','Di te amo a tu crush','Cambia tu foto 1 hora','Paga una recarga']
+    return m.reply(`😈 *RETO*\n\n*${name}* te toca: *${retos[Math.floor(Math.random()*retos.length)]}*`)
+  }
+
+  if(command == 'verdad') {
+    let verdades = ['A quién quieres del grupo?','Cuál es tu mayor secreto?','Con cuántos has salido?','Qué es lo más tóxico que has hecho?']
+    return m.reply(`❓ *VERDAD*\n\n*${name}* responde: *${verdades[Math.floor(Math.random()*verdades.length)]}*`)
   }
 }
 
 handler.help = [
   'calato', 'calata', 'cucufato', 'cucufata', 'chancho', 'chancha', 'pobre', 'rico', 'rica', 'mufa',
   'amor', 'enamorado', 'enamorada', 'fiel', 'infiel', 'romantico', 'romantica', 'celoso', 'celosa', 'casadero', 'casadera',
-  'calenton', 'calentona', 'ninfomano', 'ninfomana', 'cachero', 'cauchera', 'tragasables', 'mamador', 'semen', 'semental'
+  'calenton', 'calentona', 'ninfomano', 'ninfomana', 'cachero', 'cauchera', 'tragasables', 'mamador', 'semen', 'semental',
+  'ppt', 'dado', 'ruleta', 'ship', 'ahorcado', 'adivina', 'mentira', 'tragamonedas', 'reto', 'verdad'
 ].map((v) => v + " *@user*")
 
-handler.tags = ['fun2']
-handler.command = /^(calato|calata|cucufato|cucufata|chancho|chancha|pobre|rico|rica|mufa|amor|enamorado|enamorada|fiel|infiel|romantico|romantica|celoso|celosa|casadero|casadera|calenton|calentona|ninfomano|ninfomana|cachero|cauchera|tragasables|mamador|semen|semental)$/i
+handler.tags = ['scanner', 'juegos']
+handler.command = /^(calato|calata|cucufato|cucufata|chancho|chancha|pobre|rico|rica|mufa|amor|enamorado|enamorada|fiel|infiel|romantico|romantica|celoso|celosa|casadero|casadera|calenton|calentona|ninfomano|ninfomana|cachero|cauchera|tragasables|mamador|semen|semental|ppt|dado|ruleta|ship|ahorcado|adivina|mentira|tragamonedas|reto|verdad)$/i
 
 export default handler
