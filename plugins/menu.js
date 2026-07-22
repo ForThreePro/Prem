@@ -4,7 +4,7 @@ import os from 'os'
 
 let handler = async (m, { conn, usedPrefix }) => {
   let taguser = m.mentionedJid && m.mentionedJid[0]? m.mentionedJid[0] : m.quoted? m.quoted.sender : m.sender
-  const img = readFileSync(join(process.cwd(), 'storage', 'img', 'rayo.jpg')) // Cambiado
+  const img = readFileSync(join(process.cwd(), 'storage', 'img', 'rayo.jpg')) // rayo.jpg
 
   let totalUsers = Object.keys(global.db.data.users).length
   let totalCmds = Object.values(global.plugins).filter(p => p.help &&!p.disabled).length
@@ -12,7 +12,7 @@ let handler = async (m, { conn, usedPrefix }) => {
   let fecha = new Date()
   let dia = fecha.toLocaleDateString('es-PE', { weekday: 'long', timeZone: 'America/Lima' })
   let fechaCompleta = fecha.toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'America/Lima' })
-  let hora = fecha.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'America/Lima' })
+  let hora = fecha.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Lima' })
 
   let uptime = process.uptime() * 1000
   let h = Math.floor(uptime / 3600000)
@@ -21,25 +21,27 @@ let handler = async (m, { conn, usedPrefix }) => {
 
   let ram = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)
   let totalram = (os.totalmem() / 1024 / 1024 / 1024).toFixed(2)
-  let ping = Math.floor(Math.random() * 80) + 20
+  let ping = Date.now() - m.messageTimestamp * 1000 // ping real
 
-  let menuText = `ᯇ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 💻 ୧
+  let menuText = `ᯇ 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 ⚡ ୧
 
- ⤷ ┇ version ﹒ 3.1.5 Cyber Clean ：✿ 。
-꒰ ◞⁺⊹ ．online • ${h}h ${m2}m ${s}s
+⤷ ┇ 𝗩𝗘𝗥𝗦𝗜𝗢𝗡 ﹒ 3.1.5 𝗖𝘆𝗯𝗲𝗿 𝗖𝗹𝗲𝗮𝗻 ：✿ 。
+꒰ ◞⁺⊹ ．𝗢𝗡𝗟𝗜𝗡𝗘 • ${h}h ${m2}m ${s}s
 
- ꒱ ׁ. ᘏ 𝗎𝗌𝗎⍺𝗋ⲓ𝗈 ׅ 𝆬
+꒱ ׁ. ᘏ 𝗨𝗦𝗨𝗔𝗥𝗜𝗢 ׅ 𝆬
 🤖 @${taguser.split('@')[0]} ࣪ ꕀ ˚
 > *"Sistema conectado, domina el chat"*
 
-──愛 *ESTADISTICAS* ╏ 📊
-👥 Usuarios: ${totalUsers} | 📜 Comandos: ${totalCmds}
-💾 RAM: ${ram}MB | 🌐 Servidor: ${totalram}GB
+──愛 *𝗘𝗦𝗧𝗔𝗗𝗜𝗦𝗧𝗜𝗖𝗔𝗦* ╏ 📊
+👥 𝗨𝘀𝘂𝗮𝗿𝗶𝗼𝘀: ${totalUsers}
+📜 𝗖𝗼𝗺𝗮𝗻𝗱𝗼𝘀: ${totalCmds}
+💾 𝗥𝗔𝗠: ${ram}MB / ${totalram}GB
+📡 𝗣𝗶𝗻𝗴: ${ping}ms
 
-──💻 *SISTEMA* 💻──
-📅 ${dia}
+──💻 *𝗦𝗜𝗦𝗧𝗘𝗠𝗔* 💻──
+📅 ${dia.charAt(0).toUpperCase() + dia.slice(1)}
 📆 ${fechaCompleta}
-🕐 ${hora} | 📡 Ping: ${ping}ms
+🕐 ${hora}
 
 `
 
@@ -56,27 +58,28 @@ let handler = async (m, { conn, usedPrefix }) => {
   let emojis = {
     'downloader': '📥', 'search': '🔍', 'config': '⚙️', 'group': '👥',
     'info': 'ℹ️', 'fun': '🎭', 'sticker': '💻', 'owner': '👑',
-    'anime': '🌸', 'rg': '💎', 'game': '🎮', 'general': '✨', 'ai': '💭'
+    'anime': '🌸', 'rg': '💎', 'game': '🎮', 'general': '✨', 'ai': '💭',
+    'scanner': '⚡', 'juegos': '🎮'
   }
 
   for (let category in groups) {
     let emoji = emojis[category] || '💻'
     let catName = category.toUpperCase()
-    menuText += `.⃟𖥔 ݁💻𖦹˙— \`${catName}\` —˙𖦹💻${emoji}꒷\n`
+    menuText += `.⃟𖥔 ݁${emoji}𖦹˙— \`${catName}\` —˙𖦹${emoji}꒷\n`
     for (let cmd of groups[category]) {
       menuText += ` ${emoji} ➛.${cmd}\n`
     }
     menuText += ` ㅤ└──.✦ ── ⊰ ̟!!.✦. ˙\n\n`
   }
 
-  menuText += `💻━━━━━━━━
-🤖 *BOT:* CYBER BOT
-⚡ *Creador:* Whois Yallico 👑
-💻 *Versión:* 3.1.5 Cyber Clean
-🌐 *Web:* https://forthreepro.github.io/Whois-Yallico
+  menuText += `💻━━━━━━━━━━━━━━━━
+🤖 *𝗕𝗢𝗧:* 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧
+⚡ *𝗖𝗿𝗲𝗮𝗱𝗼𝗿:* 𝗪𝗵𝗼𝗶𝘀 𝗬𝗮𝗹𝗶𝗰𝗼 👑
+💻 *𝗩𝗲𝗿𝘀𝗶𝗼𝗻:* 3.1.5 𝗖𝘆𝗯𝗲𝗿 𝗖𝗹𝗲𝗮𝗻
+🌐 *𝗪𝗲𝗯:* https://forthreepro.github.io/Whois-Yallico
 
-> *"Sistema conectado, domina el chat"* 💻
-💻━━━━━━━━`
+> *"Sistema conectado, domina el chat"* ⚡
+💻━━━━━━━━━━━━━━━━`
 
   await conn.sendMessage(m.chat, {
     image: img,
