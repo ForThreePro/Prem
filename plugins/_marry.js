@@ -4,15 +4,14 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     if (who === m.sender) return m.reply('No te puedes casar contigo mismo xd')
 
     // Aseguramos que ambos existan en la DB
-    if (!global.db.data.users[m.sender]) global.db.data.users[m.sender] = { pareja: null }
-    if (!global.db.data.users[who]) global.db.data.users[who] = { pareja: null }
+    global.db.data.users[m.sender] = global.db.data.users[m.sender] || { pareja: null }
+    global.db.data.users[who] = global.db.data.users[who] || { pareja: null }
 
     let user = global.db.data.users[m.sender]
     let target = global.db.data.users[who]
 
     // ===== CASAR =====
     if (command == 'marry' || command == 'casar' || command == 'casarse') {
-        // Verificaciones
         if (user.pareja) return m.reply(`💍 Ya tienes pareja: @${user.pareja.split('@')[0]}`, null, { mentions: [user.pareja] })
         if (target.pareja) return m.reply(`💔 @${who.split('@')[0]} ya tiene pareja`, null, { mentions: [who] })
 
@@ -20,30 +19,27 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         user.pareja = who
         target.pareja = m.sender
 
-        let nombre1 = await conn.getName(m.sender) // <- AQUI FALTABA AWAIT
-        let nombre2 = await conn.getName(who) // <- AQUI FALTABA AWAIT
+        // FIX: Si getName falla usamos el nombre del pushName o el numero
+        let nombre1 = m.pushName || m.sender.split('@')[0]
+        let nombre2 = (await conn.onWhatsApp(who))[0]?.notify || who.split('@')[0]
 
         return conn.sendMessage(m.chat, {
             text: `┏━━━━━━━━━━━━━━━┓
 ┃ 💒 *¡FELICIDADES!* 💒 ┃
 ┗━━━━━━━━━━━┛
 
-${nombre1} y ${nombre2}
+@${m.sender.split('@')[0]} y @${who.split('@')[0]}
 *AHORA ESTÁN CASADOS* 💖
 
 📅 ${new Date().toLocaleDateString('es-PE')}`,
-            mentions: [m.sender, who]
+            mentions: [m.sender, who] // ESTO ES LO QUE HACE QUE MENCIONE
         }, { quoted: m })
     }
 
     // ===== DIVORCIO =====
     if (command == 'divorcio' || command == 'divorce') {
         if (!user.pareja) return m.reply(`💔 No tienes pareja`)
-
         let pareja = user.pareja
-        let nombre1 = await conn.getName(m.sender)
-        let nombre2 = await conn.getName(pareja)
-
         global.db.data.users[m.sender].pareja = null
         global.db.data.users[pareja].pareja = null
 
@@ -52,7 +48,7 @@ ${nombre1} y ${nombre2}
 ┃ 💔 *DIVORCIO* 💔 ┃
 ┗━━━━━━━━━━━┛
 
-${nombre1} y ${nombre2}
+@${m.sender.split('@')[0]} y @${pareja.split('@')[0]}
 *YA NO ESTÁN JUNTOS* 😭`,
             mentions: [m.sender, pareja]
         }, { quoted: m })
@@ -61,10 +57,8 @@ ${nombre1} y ${nombre2}
     // ===== VER PAREJA =====
     if (command == 'pareja') {
         if (!user.pareja) return m.reply(`💔 Estás soltero\nUsa: ${usedPrefix}marry @usuario`)
-
-        let nombre = await conn.getName(user.pareja)
         return conn.sendMessage(m.chat, {
-            text: `💍 *MI PAREJA*\n\n👤 @${user.pareja.split('@')[0]}\n*Nombre:* ${nombre}\n*Estado:* Casados 💑`,
+            text: `💍 *MI PAREJA*\n\n👤 @${user.pareja.split('@')[0]}\n*Estado:* Casados 💑`,
             mentions: [user.pareja]
         }, { quoted: m })
     }
