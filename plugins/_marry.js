@@ -3,9 +3,9 @@ let handler = async (m, { conn, usedPrefix, command }) => {
 
     // ===== IMAGENES POR DEFECTO =====
     // Boda: Pareja aesthetic
-    const IMG_CASAMIENTO = 'https://i.imgur.com/8Km9tLL.jpg'
+    const IMG_CASAMIENTO = 'https://files.evogb.win/zu9HrE.jpg'
     // Divorcio: Corazon roto
-    const IMG_DIVORCIO = 'https://i.imgur.com/qIufhof.png'
+    const IMG_DIVORCIO = 'https://files.evogb.win/bftECK.jpg'
 
     global.db.data.users[m.sender] = global.db.data.users[m.sender] || { pareja: null }
 
