@@ -48,6 +48,12 @@ let handler = async (m, { conn, usedPrefix, command }) => {
 
         let pareja = user.pareja
 
+        // FIX: Solo la pareja puede divorciarse
+        // Verificamos que el que usa el comando sea uno de los 2
+        if (global.db.data.users[pareja].pareja!== m.sender) {
+            return m.reply(`⚠️ *Error en la DB. Habla con un admin*`)
+        }
+
         // Divorcio
         user.pareja = null
         global.db.data.users[pareja].pareja = null
