@@ -31,7 +31,19 @@ let handler = async (m, { conn, command, text }) => {
     'celoso': `💘 *CYBER BOT LOVE SCANNER* 💘\n\n💕 *${userTarget}* *ES* *${porcentaje}%* *CELOSO* 😠\n📱 *REVISA HASTA LOS LIKES*\n💻 *Cyber Love System*`,
     'celosa': `💘 *CYBER BOT LOVE SCANNER* 💘\n\n💕 *${userTarget}* *ES* *${porcentaje}%* *CELOSA* 😠\n👀 *SI TE HABLA UNA CHICA ARDE TROYA*\n💻 *Cyber Love System*`,
     'casadero': `💘 *CYBER BOT LOVE SCANNER* 💘\n\n💕 *${userTarget}* *ES* *${porcentaje}%* *CASADERO* 💒\n👰 *YA QUIERE ANILLO*\n💻 *Cyber Love System*`,
-    'casadera': `💘 *CYBER BOT LOVE SCANNER* 💘\n\n💕 *${userTarget}* *ES* *${porcentaje}%* *CASADERA* 💒\n👰 *MIRA VESTIDOS DE NOVIA*\n💻 *Cyber Love System*`
+    'casadera': `💘 *CYBER BOT LOVE SCANNER* 💘\n\n💕 *${userTarget}* *ES* *${porcentaje}%* *CASADERA* 💒\n👰 *MIRA VESTIDOS DE NOVIA*\n💻 *Cyber Love System*`,
+
+    // ===== PACK 3: +18 PICANTES 🔥 =====
+    'calenton': `🔥 *CYBER BOT +18 SCANNER* 🔥\n\n😈 *${userTarget}* *ES* *${porcentaje}%* *CALENTÓN* 🥵\n💦 *CON 2 MENSAJITOS YA ESTÁ LISTO*\n💻 *Cyber +18 System*`,
+    'calentona': `🔥 *CYBER BOT +18 SCANNER* 🔥\n\n😈 *${userTarget}* *ES* *${porcentaje}%* *CALENTONA* 🥵\n💦 *PIDE NUDES A LAS 3AM*\n💻 *Cyber +18 System*`,
+    'ninfomano': `🔥 *CYBER BOT +18 SCANNER* 🔥\n\n😈 *${userTarget}* *ES* *${porcentaje}%* *NINFÓMANO* 🍆\n🔥 *NO TIENE LLENADERA*\n💻 *Cyber +18 System*`,
+    'ninfomana': `🔥 *CYBER BOT +18 SCANNER* 🔥\n\n😈 *${userTarget}* *ES* *${porcentaje}%* *NINFÓMANA* 🍑\n🔥 *24/7 EN MODO ACTIVO*\n💻 *Cyber +18 System*`,
+    'cachero': `🔥 *CYBER BOT +18 SCANNER* 🔥\n\n😈 *${userTarget}* *ES* *${porcentaje}%* *CACHERO* 😏\n🍑 *NO PERDONA NI EN CUARENTENA*\n💻 *Cyber +18 System*`,
+    'cauchera': `🔥 *CYBER BOT +18 SCANNER* 🔥\n\n😈 *${userTarget}* *ES* *${porcentaje}%* *CAUCHERA* 😏\n🍆 *REINA DE LA JODA NOCTURNA*\n💻 *Cyber +18 System*`,
+    'tragasables': `🔥 *CYBER BOT +18 SCANNER* 🔥\n\n😈 *${userTarget}* *ES* *${porcentaje}%* *TRAGASABLES* 😋\n🤫 *ESPECIALISTA EN DESAYUNOS*\n💻 *Cyber +18 System*`,
+    'mamador': `🔥 *CYBER BOT +18 SCANNER* 🔥\n\n😈 *${userTarget}* *ES* *${porcentaje}%* *MAMADOR* 👅\n🤫 *PROFESIONAL CERTIFICADO*\n💻 *Cyber +18 System*`,
+    'semen': `🔥 *CYBER BOT +18 SCANNER* 🔥\n\n😈 *${userTarget}* *ES* *${porcentaje}%* *SEMENTAL* 🐎\n💪 *DURA TODA LA NOCHE*\n💻 *Cyber +18 System*`,
+    'semental': `🔥 *CYBER BOT +18 SCANNER* 🔥\n\n😈 *${userTarget}* *ES* *${porcentaje}%* *SEMENTAL* 🐎\n💪 *MAQUINA DE GUERRA*\n💻 *Cyber +18 System*`
   }
 
   let respuestaFinal = respuestas[command.toLowerCase()];
@@ -46,10 +58,11 @@ let handler = async (m, { conn, command, text }) => {
 
 handler.help = [
   'calato', 'calata', 'cucufato', 'cucufata', 'chancho', 'chancha', 'pobre', 'rico', 'rica', 'mufa',
-  'amor', 'enamorado', 'enamorada', 'fiel', 'infiel', 'romantico', 'romantica', 'celoso', 'celosa', 'casadero', 'casadera'
+  'amor', 'enamorado', 'enamorada', 'fiel', 'infiel', 'romantico', 'romantica', 'celoso', 'celosa', 'casadero', 'casadera',
+  'calenton', 'calentona', 'ninfomano', 'ninfomana', 'cachero', 'cauchera', 'tragasables', 'mamador', 'semen', 'semental'
 ].map((v) => v + " *@user*")
 
 handler.tags = ['fun2']
-handler.command = /^(calato|calata|cucufato|cucufata|chancho|chancha|pobre|rico|rica|mufa|amor|enamorado|enamorada|fiel|infiel|romantico|romantica|celoso|celosa|casadero|casadera)$/i
+handler.command = /^(calato|calata|cucufato|cucufata|chancho|chancha|pobre|rico|rica|mufa|amor|enamorado|enamorada|fiel|infiel|romantico|romantica|celoso|celosa|casadero|casadera|calenton|calentona|ninfomano|ninfomana|cachero|cauchera|tragasables|mamador|semen|semental)$/i
 
 export default handler
