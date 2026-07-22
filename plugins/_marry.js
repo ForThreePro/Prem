@@ -1,8 +1,22 @@
 let handler = async (m, { conn, usedPrefix, command }) => {
     let who = m.mentionedJid[0]? m.mentionedJid[0] : m.quoted? m.quoted.sender : null
 
-    // Asegurar DB
+    // ===== IMAGENES POR DEFECTO =====
+    // Boda: Pareja aesthetic
+    const IMG_CASAMIENTO = 'https://i.imgur.com/8Km9tLL.jpg'
+    // Divorcio: Corazon roto
+    const IMG_DIVORCIO = 'https://i.imgur.com/qIufhof.png'
+
     global.db.data.users[m.sender] = global.db.data.users[m.sender] || { pareja: null }
+
+    // Función para enviar imagen
+    const sendMedia = async (chat, url, caption, mentions) => {
+        return conn.sendMessage(chat, {
+            image: { url: url },
+            caption: caption,
+            mentions: mentions
+        }, { quoted: m })
+    }
 
     // ===== CASARSE =====
     if (command == 'marry' || command == 'casar') {
@@ -22,23 +36,25 @@ let handler = async (m, { conn, usedPrefix, command }) => {
 
         let fecha = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' })
 
-        return conn.sendMessage(m.chat, {
-            text: `ᯇ 💒 𝗠𝗔𝗧𝗥𝗜𝗠𝗢𝗡𝗜𝗢 💒 ୧
+        let caption = `ᯇ 💒 𝗠𝗔𝗧𝗥𝗜𝗠𝗢𝗡𝗜𝗢 💒 ୧
 
-⤷ ┇ 𝗖𝗘𝗥𝗘𝗠𝗢𝗡𝗜𝗔 𝗖𝗢𝗡𝗖𝗟𝗨𝗜𝗗𝗔 ：✿ 。
+⤷ ┇ 𝗘𝗟 𝗔𝗠𝗢𝗥 𝗩𝗘𝗡𝗖𝗜𝗢 ：✿ 。
 
-꒰ ◞⁺⊹ ．💖 *¡FELICIDADES!* 💖
+꒰ ◞⁺⊹ ．💖 *¡SE CASARON!* 💖
 
 @${m.sender.split('@')[0]} ❤️ @${who.split('@')[0]}
-*AHORA ESTÁN CASADOS*
+
+──愛 *𝗩𝗢𝗧𝗢𝗦* ╏ 💌
+"Prometo amarte en las buenas, en las malas,
+y en los días que el wifi falle"
 
 ──愛 *𝗗𝗘𝗧𝗔𝗟𝗘𝗦* ╏ 💍
 📅 𝗙𝗲𝗰𝗵𝗮: ${fecha}
-💬 "Hasta que el ${usedPrefix}divorcio los separe" 😈
+💬 *Que su amor dure más que la batería del cel*
 
-> *Que vivan los novios!!!* 🎉`,
-            mentions: [m.sender, who]
-        }, { quoted: m })
+> *¡Que vivan los novios!* 🎉💕`
+
+        return sendMedia(m.chat, IMG_CASAMIENTO, caption, [m.sender, who])
     }
 
     // ===== DIVORCIARSE =====
@@ -47,34 +63,30 @@ let handler = async (m, { conn, usedPrefix, command }) => {
         if (!user.pareja) return m.reply(`💔 *No tienes pareja*\n*Usa ${usedPrefix}marry @usuario*`)
 
         let pareja = user.pareja
-
-        // FIX: Solo la pareja puede divorciarse
-        // Verificamos que el que usa el comando sea uno de los 2
-        if (global.db.data.users[pareja].pareja!== m.sender) {
-            return m.reply(`⚠️ *Error en la DB. Habla con un admin*`)
-        }
+        if (global.db.data.users[pareja].pareja!== m.sender) return m.reply(`⚠️ *Error en la DB*`)
 
         // Divorcio
         user.pareja = null
         global.db.data.users[pareja].pareja = null
 
-        return conn.sendMessage(m.chat, {
-            text: `ᯇ 💔 𝗗𝗜𝗩𝗢𝗥𝗖𝗜𝗢 💔 ୧
+        let caption = `ᯇ 💔 𝗗𝗜𝗩𝗢𝗥𝗖𝗜𝗢 💔 ୧
 
-⤷ ┇ 𝗦𝗘𝗣𝗔𝗥𝗔𝗖𝗜𝗢𝗡 𝗢𝗙𝗜𝗖𝗜𝗔𝗟 ：✿ 。
+⤷ ┇ 𝗙𝗜𝗡𝗔𝗟 𝗗𝗘𝗟 𝗔𝗠𝗢𝗥 ：✿ 。
 
-꒰ ◞⁺⊹ ．😭 *SE ACABÓ EL AMOR* 😭
+꒰ ◞⁺⊹ ．😭 *SE ACABÓ* 😭
 
 @${m.sender.split('@')[0]} 💔 @${pareja.split('@')[0]}
-*YA NO ESTÁN JUNTOS*
 
-──愛 *𝗠𝗢𝗧𝗜𝗩𝗢* ╏ 📝
-*La rutina y el lag*
-*División de bienes:* El que se queda con el wifi gana
+──愛 *𝗖𝗔𝗥𝗧𝗔* ╏ 💌
+"Ya no fue... pero gracias por los memes"
+"El amor es como el internet: a veces se cae"
 
-> *Ahora son libres de nuevo* 🕊️`,
-            mentions: [m.sender, pareja]
-        }, { quoted: m })
+──愛 *𝗗𝗘𝗧𝗔𝗟𝗘𝗦* ╏ 📝
+*División de bienes:* El que llore último paga el wifi
+
+> *Ahora son libres* 🕊️ *A rehacer su vida*`
+
+        return sendMedia(m.chat, IMG_DIVORCIO, caption, [m.sender, pareja])
     }
 }
 
