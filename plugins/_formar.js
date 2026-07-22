@@ -12,22 +12,22 @@ let frasesAmor = [
 let handler = async (m, { conn, groupMetadata }) => {
   let participantes = groupMetadata.participants.map(p => p.id)
 
-  if (participantes.length < 10) {
-    return m.reply('Necesito mínimo 10 personas en el grupo para sacar 5 parejas 😅')
+  if (participantes.length < 4) {
+    return m.reply('Necesito mínimo 4 personas en el grupo para sacar 2 parejas 😅')
   }
 
-  // Mezclar y sacar 10 personas random
+  // Mezclar y sacar 4 personas random
   let mezclados = participantes.sort(() => Math.random() - 0.5)
-  let seleccionados = mezclados.slice(0, 10)
+  let seleccionados = mezclados.slice(0, 4)
 
-  // Formar 5 parejas
+  // Formar 2 parejas
   let parejas = []
   for (let i = 0; i < seleccionados.length; i += 2) {
     parejas.push([seleccionados[i], seleccionados[i+1]])
   }
 
   // Armar el mensaje
-  let texto = `💞 *FORMANDO 5 PAREJAS RANDOM* 💞\n\n`
+  let texto = `💞 *FORMANDO 2 PAREJAS RANDOM* 💞\n\n`
 
   for (let i = 0; i < parejas.length; i++) {
     let [p1, p2] = parejas[i]
