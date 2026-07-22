@@ -51,7 +51,7 @@ let handler = async (m, { conn, command, text }) => {
     return await conn.sendMessage(m.chat, { text: respuestaFinal, mentions: [who] }, { quoted: m });
   }
 
-  // ===== JUEGOS =====
+  // ===== JUEGOS - SIN SHIP =====
   if(command == 'ppt') {
     let opciones = ['piedra', 'papel', 'tijera']
     let bot = opciones[Math.floor(Math.random()*3)]
@@ -65,16 +65,6 @@ let handler = async (m, { conn, command, text }) => {
   if(command == 'ruleta') {
     let premios = ['S/50', 'Un beso', 'Lavar platos', 'Pagar la cerveza', 'Nada F', 'Yape de 5 lucas']
     return m.reply(`🎡 *RULETA DE LA SUERTE*\n\n*${name}* ganó: *${premios[Math.floor(Math.random()*premios.length)]}*`)
-  }
-
-  if(command == 'ship') {
-    let targets = m.mentionedJid
-    if(targets.length < 2) return m.reply('Menciona a 2 personas oe\nEjemplo:.ship @Maria @Juan')
-    let name1 = await conn.getName(targets[0])
-    let name2 = await conn.getName(targets[1])
-    let porcentaje = Math.floor(Math.random()*100)+1
-    let resultado = porcentaje > 90? 'ALMAS GEMELAS 💍' : porcentaje > 70? 'Hay química 🔥' : porcentaje > 50? 'Si hay futuro ❤️' : porcentaje > 30? 'Solo amigos xd' : 'Ni agua y aceite 😂'
-    return m.reply(`💘 *SHIP SCANNER*\n\n*${name1}* + *${name2}*\nCompatibilidad: *${porcentaje}%*\n${resultado}`)
   }
 
   if(command == 'ahorcado') {
@@ -115,10 +105,10 @@ handler.help = [
   'calato', 'calata', 'cucufato', 'cucufata', 'chancho', 'chancha', 'pobre', 'rico', 'rica', 'mufa',
   'amor', 'enamorado', 'enamorada', 'fiel', 'infiel', 'romantico', 'romantica', 'celoso', 'celosa', 'casadero', 'casadera',
   'calenton', 'calentona', 'ninfomano', 'ninfomana', 'cachero', 'cauchera', 'tragasables', 'mamador', 'semen', 'semental',
-  'ppt', 'dado', 'ruleta', 'ship', 'ahorcado', 'adivina', 'mentira', 'tragamonedas', 'reto', 'verdad'
+  'ppt', 'dado', 'ruleta', 'ahorcado', 'adivina', 'mentira', 'tragamonedas', 'reto', 'verdad'
 ].map((v) => v + " *@user*")
 
 handler.tags = ['scanner', 'juegos']
-handler.command = /^(calato|calata|cucufato|cucufata|chancho|chancha|pobre|rico|rica|mufa|amor|enamorado|enamorada|fiel|infiel|romantico|romantica|celoso|celosa|casadero|casadera|calenton|calentona|ninfomano|ninfomana|cachero|cauchera|tragasables|mamador|semen|semental|ppt|dado|ruleta|ship|ahorcado|adivina|mentira|tragamonedas|reto|verdad)$/i
+handler.command = /^(calato|calata|cucufato|cucufata|chancho|chancha|pobre|rico|rica|mufa|amor|enamorado|enamorada|fiel|infiel|romantico|romantica|celoso|celosa|casadero|casadera|calenton|calentona|ninfomano|ninfomana|cachero|cauchera|tragasables|mamador|semen|semental|ppt|dado|ruleta|ahorcado|adivina|mentira|tragamonedas|reto|verdad)$/i
 
 export default handler
