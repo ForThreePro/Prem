@@ -1,4 +1,4 @@
-let handler = async (m, { conn, command, args, usedPrefix }) => {
+let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => { // agregamos isAdmin
 
     global.db.data.sorteos = global.db.data.sorteos || {}
     global.db.data.sorteosPendientes = global.db.data.sorteosPendientes || {}
@@ -23,8 +23,9 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
     lista[chatId] = lista[chatId] || {}
     lista[chatId][hoy] = lista[chatId][hoy] || []
 
-    // ===== 1. SET ASIGNACIÓN =====
+    // ===== 1. SET ASIGNACIÓN - SOLO ADMIN =====
     if (command.startsWith('set')) {
+        if (!isAdmin) return m.reply('❄️ ❌ *SOLO ADMINS* ❌\n> No tienes permiso para asignar participantes')
         if (!dias.includes(dia)) return m.reply('❄️ ❌ *DÍA INVÁLIDO* ❌\n> Usa: lunes a sábado')
         let mentioned = m.mentionedJid
         if (mentioned.length === 0) return m.reply(`❄️ ❌ *FALTA MENCIONAR* ❌\n> *Ejemplo:* ${usedPrefix}set${dia} @user1 @user2`)
@@ -47,8 +48,9 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
         return
     }
 
-    // ===== 2. RECORDATORIO =====
+    // ===== 2. RECORDATORIO - SOLO ADMIN =====
     if (dias.includes(command.toLowerCase())) {
+        if (!isAdmin) return m.reply('❄️ ❌ *SOLO ADMINS* ❌\n> No tienes permiso para mandar recordatorios')
         let sorteo = sorteos[chatId][command.toLowerCase()]
         if (!sorteo) return m.reply(`❄️ ❌ *SIN ASIGNACIÓN* ❌\n> Usa: ${usedPrefix}set${command} @user`)
 
@@ -72,7 +74,7 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
         return
     }
 
-    // ===== 3. LISTO CON EVIDENCIA =====
+    // ===== 3. LISTO CON EVIDENCIA - PARA TODOS LOS ASIGNADOS =====
     if (command === 'listo') {
         if (!pendientes[chatId][hoy]) return m.reply('❄️ ❌ *NO HAY PARTICIPANTES ASIGNADOS HOY* ❌')
         if (!pendientes[chatId][hoy].includes(m.sender)) return m.reply('❄️ ❌ *NO ESTÁS ASIGNADO PARA HOY* ❌')
@@ -106,7 +108,7 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
         return
     }
 
-    // ===== 4. VER LISTA =====
+    // ===== 4. VER LISTA - PARA TODOS =====
     if (command === 'verlista') {
         if (lista[chatId][hoy].length === 0) return m.reply('❄️ ❌ *LISTA VACÍA* ❌\n> Nadie se ha anotado hoy')
         let txt = `┏━━━━━━━━━━━━━━━┓\n`
@@ -123,7 +125,7 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
         return conn.reply(m.chat, txt, m)
     }
 
-    // ===== 5. VER SEMANA =====
+    // ===== 5. VER SEMANA - PARA TODOS =====
     if (command === 'verdias') {
         if (Object.keys(sorteos[chatId]).length === 0) return m.reply('❄️ ❌ *SIN ASIGNACIONES* ❌')
         let txt = `┏━━━━━━━━━━━━━━━┓\n`
@@ -161,5 +163,5 @@ handler.help = [
 handler.tags = ['sorteos']
 handler.command = /^(setlunes|setmartes|setmiercoles|setjueves|setviernes|setsabado|lunes|martes|miercoles|jueves|viernes|sabado|listo|verlista|verdias)$/i
 handler.group = true
-handler.admin = true // solo admin puede usar set y recordatorios
+handler.admin = false // Ya no bloquea todo
 export default handler
