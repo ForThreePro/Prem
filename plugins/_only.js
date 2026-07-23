@@ -10,8 +10,14 @@ const handler = async (m, { conn, command }) => {
     } catch {}
   }
 
-  let name = await conn.getName(who).catch(() => 'Usuario');
-  let pp = await conn.profilePictureUrl(who, 'image').catch(() => 'https://i.ibb.co/2kR5Hq0/only-default.jpg');
+  // ARREGLO 1: getName con try/catch
+  let name = 'Usuario';
+  try { name = await conn.getName(who) || 'Usuario'; } catch {}
+
+  // ARREGLO 2: profilePictureUrl con try/catch
+  let pp = 'https://i.ibb.co/2kR5Hq0/only-default.jpg';
+  try { pp = await conn.profilePictureUrl(who, 'image'); } catch {}
+
   let user = who.split('@')[0];
   let username = name.replace(/\s/g,'').toLowerCase();
 
@@ -35,7 +41,6 @@ const handler = async (m, { conn, command }) => {
   const estado = Math.random() > 0.5? `🟢 ACTIVO - Ganando $${rand(300,3000)}/mes` : '🔴 OFFLINE';
 
   if (command === 'onlyfans' || command === 'only' || command === 'of') {
-    // COMANDO.ONLYFANS
     const caption = `
 *╭━━━[ 🔵 OnlyFans Profile ]━━━╮*
 
@@ -63,7 +68,6 @@ ${bio}
     await conn.sendMessage(m.chat, { image: { url: pp }, caption, mentions: [who] }, { quoted: m });
 
   } else if (command === 'leak' || command === 'filtrar') {
-    // COMANDO.LEAK
     const caption = `
 *🚨 ALERTA DE FILTRACIÓN 🚨*
 
@@ -75,9 +79,9 @@ ${bio}
 *👥 SUSCRIPTORES:* ${subs.toLocaleString()}
 
 *📸 ARCHIVOS FILTRADOS:*
-• ${posts} Fotos
-• ${videos} Videos
-• ${rand(5,50)} Packs Privados
+- ${posts} Fotos
+- ${videos} Videos
+- ${rand(5,50)} Packs Privados
 
 *❤️ ${likes.toLocaleString()} Likes* | *⭐ ${rating}/5.0*
 
