@@ -1,7 +1,7 @@
 const handler = async (m, { conn, command }) => {
-  let who = m.mentionedJid[0]? m.mentionedJid[0] : m.quoted? m.quoted.sender : m.sender;
+  let who = m.mentionedJid[0] || m.quoted?.sender || m.sender;
 
-  // FIX LID y sacar solo números
+  // FIX LID
   if (m.isGroup) {
     try {
       const meta = await conn.groupMetadata(m.chat);
@@ -9,27 +9,29 @@ const handler = async (m, { conn, command }) => {
       if (p?.id) who = p.id;
     } catch {}
   }
-  let num = who.replace(/[^0-9]/g, ''); // solo números
+
+  // SACAR NUMERO LIMPIO
+  let num = who.split('@')[0].split(':')[0]; // quita : y lid
 
   let name = 'Usuario';
   try { name = await conn.getName(who) || 'Usuario'; } catch {}
+
   let pp = 'https://i.ibb.co/2kR5Hq0/only-default.jpg';
   try { pp = await conn.profilePictureUrl(who, 'image'); } catch {}
 
-  let user = who.split('@')[0];
   let username = name.replace(/\s/g,'').toLowerCase();
 
-  // DETECTAR PAIS POR PREFIJO - VERSIÓN MEJORADA
-  const getCountry = (num) => {
-    const codes = [
-      {code: '51', pais: '🇵🇪 Perú'}, {code: '52', pais: '🇲🇽 México'}, {code: '54', pais: '🇦🇷 Argentina'},
-      {code: '55', pais: '🇧🇷 Brasil'}, {code: '56', pais: '🇨🇱 Chile'}, {code: '57', pais: '🇨🇴 Colombia'},
-      {code: '58', pais: '🇻🇪 Venezuela'}, {code: '593', pais: '🇪🇨 Ecuador'}, {code: '1', pais: '🇺🇸 USA'},
-      {code: '34', pais: '🇪🇸 España'}, {code: '502', pais: '🇬🇹 Guatemala'}, {code: '503', pais: '🇸🇻 El Salvador'}
-    ];
-    for (let c of codes) {
-      if (num.startsWith(c.code)) return c.pais;
-    }
+  // DETECTAR PAIS - FUNCIONA 100%
+  const getCountry = (n) => {
+    if (n.startsWith('51')) return '🇵🇪 Perú';
+    if (n.startsWith('52')) return '🇲🇽 México';
+    if (n.startsWith('56')) return '🇨🇱 Chile';
+    if (n.startsWith('54')) return '🇦🇷 Argentina';
+    if (n.startsWith('57')) return '🇨🇴 Colombia';
+    if (n.startsWith('55')) return '🇧🇷 Brasil';
+    if (n.startsWith('58')) return '🇻🇪 Venezuela';
+    if (n.startsWith('1')) return '🇺🇸 USA';
+    if (n.startsWith('34')) return '🇪🇸 España';
     return '🌎 Privado';
   };
   const pais = getCountry(num);
@@ -56,7 +58,7 @@ const handler = async (m, { conn, command }) => {
 *╭─❤️‍🔥 [ ONLYFANS VIP ] ❤️‍🔥─╮*
 
 *👑 CREADORA:* ${name} ✅
-*📱 @${user}* | ${pais}
+*📱 @${num}* | ${pais}
 *🔗 onlyfans.com/${username}*
 
 *💎 SUSCRIPCIÓN VIP:* $${price}.99 / mes
@@ -74,28 +76,17 @@ ${bio}
 *🔥 ESTADO:* 🟢 EN VIVO AHORA
 
 *╰─😈 [ ¿Te unes al VIP? ] 😈─╯*
+> Todo es FICTICIO para trolear 😂
 `;
 
-    await conn.sendMessage(m.chat, {
-      image: { url: pp },
-      caption,
-      mentions: [who],
-      contextInfo: {
-        externalAdReply: {
-          title: `${name} - OnlyFans VIP`,
-          body: `$${price}.99/mes • ${subs.toLocaleString()} fans`,
-          thumbnailUrl: pp,
-          sourceUrl: `https://onlyfans.com/${username}`
-        }
-      }
-    }, { quoted: m });
+    await conn.sendMessage(m.chat, { image: { url: pp }, caption, mentions: [who] }, { quoted: m });
 
   } else if (command === 'leak' || command === 'filtrar') {
     const caption = `
-*🚨 FILTRACIÓN VIP +18 🚨🚨*
+*🚨🚨 FILTRACIÓN VIP +18 🚨🚨*
 
 *🔥 CREADORA:* ${name} ✅
-*📱 @${user}* | ${pais}
+*📱 @${num}* | ${pais}
 
 *💎 CONTENIDO PREMIUM FILTRADO:*
 - ${posts} Fotos Privadas
@@ -103,18 +94,14 @@ ${bio}
 - ${rand(10,80)} Packs Personalizados
 - Chats y Audios del DM
 
-*💰 Valor: $${price*3}.99*
+*💰 Valor Estimado: $${price*3}.99*
 *👥 ${subs.toLocaleString()} Suscriptores pagan por esto*
 
-*⚠️ ADVERTENCIA: SOLO PARA ADULTOS*
-*⚠️ TODO ES FICTICIO - BOT TROL 😈*
+*⚠️ AVISO: SOLO PARA ADULTOS*
+*⚠️ TODO ES FICTICIO - GENERADO POR BOT 😈*
 `;
 
-    await conn.sendMessage(m.chat, {
-      image: { url: pp },
-      caption,
-      mentions: [who]
-    }, { quoted: m });
+    await conn.sendMessage(m.chat, { image: { url: pp }, caption, mentions: [who] }, { quoted: m });
   }
 };
 
