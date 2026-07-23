@@ -1,4 +1,4 @@
-let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
+let handler = async (m, { conn, command, usedPrefix, isAdmin }) => {
 
     global.db.data.sorteos = global.db.data.sorteos || {}
     let sorteos = global.db.data.sorteos
@@ -10,19 +10,19 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
     let dia = command.replace('set','').replace('borrar','').toLowerCase()
     sorteos[chatId] = sorteos[chatId] || {}
 
-    const limpiar = (jid) => jid.split('@')[0].replace(/[^0-9]/g, '') // quita + y espacios
+    const limpiar = (jid) => jid.split('@')[0].replace(/[^0-9]/g, '')
 
-    // ===== 1. ASIGNAR =====
+    // ===== 1. ASIGNAR.setlunes @user =====
     if (command.startsWith('set')) {
-        if (!isAdmin) return m.reply(`❄️ *ACCESO DENEGADO* ❄️`)
+        if (!isAdmin) return m.reply(`❄️ *ACCESO DENEGADO* ❄️ Solo admins`)
         if (!dias.includes(dia)) return m.reply(`❄️ *DÍA INVÁLIDO*`)
 
         let mentioned = m.mentionedJid
         if (mentioned.length === 0) return m.reply(`❄️ *FALTA MENCIONAR*\n*Ejemplo:* ${usedPrefix}set${dia} @user1 @user2`)
 
-        sorteos[chatId][dia] = [...new Set(mentioned.map(j => limpiar(j)))]
+        sorteos[chatId][dia] = [...new Set(mentioned)] // Guardamos el JID completo, no solo el número
 
-        let list = sorteos[chatId][dia].map((u, i) => `┃ ${i+1} │ @${u}`).join('\n')
+        let list = sorteos[chatId][dia].map((u, i) => `┃ ${i+1} │ @${u.split('@')[0]}`).join('\n')
         let msg = `╔══════════════╗
 ║ ❄️ CRISTAL SORTEOS ❄️ ║
 ╚══════════════╝
@@ -37,26 +37,25 @@ ${list}
 📋 INSTRUCCIÓN:
 Realizar sorteo + Reaccionar + Compartir
 
-Usa.${dia} para ver el recordatorio`
+Usa *${usedPrefix}${dia}* para ver el recordatorio`
         await conn.reply(m.chat, msg, m, { mentions: mentioned })
         return
     }
 
-    // ===== 2. BORRAR =====
+    // ===== 2. BORRAR.borrarlunes =====
     if (command.startsWith('borrar')) {
-        if (!isAdmin) return m.reply(`❄️ *ACCESO DENEGADO* ❄️`)
+        if (!isAdmin) return m.reply(`❄️ *ACCESO DENEGADO* ❄️ Solo admins`)
         delete sorteos[chatId][dia]
         return m.reply(`✅ *ELIMINADO*\nSe borró la asignación de *${dia.toUpperCase()}*`)
     }
 
-    // ===== 3. RECORDATORIO =====
+    // ===== 3. RECORDATORIO.lunes =====
     if (dias.includes(command.toLowerCase())) {
-        if (!isAdmin) return m.reply(`❄️ *ACCESO DENEGADO* ❄️`)
+        if (!isAdmin) return m.reply(`❄️ *ACCESO DENEGADO* ❄️ Solo admins`)
         let asignados = sorteos[chatId][command.toLowerCase()]
-        if (!asignados ||!Array.isArray(asignados)) return m.reply(`❄️ *SIN ASIGNACIÓN*\nUsa: ${usedPrefix}set${command} @user`)
+        if (!asignados ||!asignados.length) return m.reply(`❄️ *SIN ASIGNACIÓN*\nUsa: ${usedPrefix}set${command} @user`)
 
-        let list = asignados.map((u, i) => `┃ ${i+1} │ @${u}`).join('\n')
-        let menciones = asignados.map(n => n + '@s.whatsapp.net') // AQUI ESTABA EL ERROR
+        let list = asignados.map((u, i) => `┃ ${i+1} │ @${u.split('@')[0]}`).join('\n')
 
         let msg = `╔══════════════╗
 ║ ❄️ RECORDATORIO ❄️ ║
@@ -73,33 +72,37 @@ ${list}
 Realizar sorteo + Reaccionar + Compartir
 
 ❄️ Cumplan su turno`
-        await conn.reply(m.chat, msg, m, { mentions: menciones })
+        await conn.reply(m.chat, msg, m, { mentions: asignados }) // <-- Aquí ya pasamos el JID completo
         return
     }
 
-    // ===== 4. VER TODO =====
+    // ===== 4. VER TODO.ver =====
     if (command === 'ver') {
-        let diasConData = Object.keys(sorteos[chatId]).filter(d => Array.isArray(sorteos[chatId][d]) && sorteos[chatId][d].length > 0)
+        let diasConData = dias.filter(d => Array.isArray(sorteos[chatId][d]) && sorteos[chatId][d].length > 0)
         if (diasConData.length === 0) return m.reply(`❄️ *CRONOGRAMA VACÍO*`)
 
         let txt = `╔══════════════════════╗
 ║ ❄️ CRONOGRAMA SEMANAL ❄️ ║
-╚══════════════════════╝\n\n`
+╚══════════════╝\n\n`
 
+        let todos = []
         for(let d of dias){
             if(!Array.isArray(sorteos[chatId][d])) continue
             txt += `◆ ${emojis[d]} ${d.toUpperCase()}\n`
-            sorteos[chatId][d].forEach((u, i) => { txt += `┃ ${i+1} │ @${u}\n` })
+            sorteos[chatId][d].forEach((u, i) => {
+                txt += `┃ ${i+1} │ @${u.split('@')[0]}\n`
+                todos.push(u)
+            })
             txt += `│\n`
         }
         txt += `╚══════════════╝`
-        let todos = diasConData.flatMap(d => sorteos[chatId][d]).map(n => n + '@s.whatsapp.net')
         return conn.reply(m.chat, txt, m, { mentions: [...new Set(todos)] })
     }
 }
 
-handler.help = ['setjueves @user','jueves','borrarjueves','ver']
+handler.help = ['setlunes @tag','lunes','borrarlunes','ver']
 handler.tags = ['sorteos']
 handler.command = /^(setlunes|setmartes|setmiercoles|setjueves|setviernes|setsabado|borrarlunes|borrarmartes|borrarmiercoles|borrarjueves|borrarviernes|borrarsabado|lunes|martes|miercoles|jueves|viernes|sabado|ver)$/i
 handler.group = true
+handler.admin = true // solo admins pueden usarlo
 export default handler
