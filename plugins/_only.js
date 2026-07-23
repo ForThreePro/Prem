@@ -1,7 +1,7 @@
 const handler = async (m, { conn, command }) => {
   let who = m.mentionedJid[0]? m.mentionedJid[0] : m.quoted? m.quoted.sender : m.sender;
 
-  // FIX LID
+  // FIX LID y sacar solo números
   if (m.isGroup) {
     try {
       const meta = await conn.groupMetadata(m.chat);
@@ -9,8 +9,8 @@ const handler = async (m, { conn, command }) => {
       if (p?.id) who = p.id;
     } catch {}
   }
+  let num = who.replace(/[^0-9]/g, ''); // solo números
 
-  // Datos del usuario
   let name = 'Usuario';
   try { name = await conn.getName(who) || 'Usuario'; } catch {}
   let pp = 'https://i.ibb.co/2kR5Hq0/only-default.jpg';
@@ -19,94 +19,102 @@ const handler = async (m, { conn, command }) => {
   let user = who.split('@')[0];
   let username = name.replace(/\s/g,'').toLowerCase();
 
-  // DETECTAR PAIS POR PREFIJO
+  // DETECTAR PAIS POR PREFIJO - VERSIÓN MEJORADA
   const getCountry = (num) => {
-    const codes = {
-      '1': '🇺🇸 USA/Canadá', '51': '🇵🇪 Perú', '52': '🇲🇽 México', '53': '🇨🇺 Cuba',
-      '54': '🇦🇷 Argentina', '55': '🇧🇷 Brasil', '56': '🇨🇱 Chile', '57': '🇨🇴 Colombia',
-      '58': '🇻🇪 Venezuela', '502': '🇬🇹 Guatemala', '503': '🇸🇻 El Salvador',
-      '504': '🇭🇳 Honduras', '505': '🇳🇮 Nicaragua', '506': '🇨🇷 Costa Rica',
-      '507': '🇵🇦 Panamá', '593': '🇪🇨 Ecuador', '595': '🇵🇾 Paraguay', '598': '🇺🇾 Uruguay',
-      '34': '🇪🇸 España', '351': '🇵🇹 Portugal', '39': '🇮🇹 Italia', '49': '🇩🇪 Alemania'
-    };
-    for (let code in codes) {
-      if (user.startsWith(code)) return codes[code];
+    const codes = [
+      {code: '51', pais: '🇵🇪 Perú'}, {code: '52', pais: '🇲🇽 México'}, {code: '54', pais: '🇦🇷 Argentina'},
+      {code: '55', pais: '🇧🇷 Brasil'}, {code: '56', pais: '🇨🇱 Chile'}, {code: '57', pais: '🇨🇴 Colombia'},
+      {code: '58', pais: '🇻🇪 Venezuela'}, {code: '593', pais: '🇪🇨 Ecuador'}, {code: '1', pais: '🇺🇸 USA'},
+      {code: '34', pais: '🇪🇸 España'}, {code: '502', pais: '🇬🇹 Guatemala'}, {code: '503', pais: '🇸🇻 El Salvador'}
+    ];
+    for (let c of codes) {
+      if (num.startsWith(c.code)) return c.pais;
     }
-    return '🌎 Desconocido';
+    return '🌎 Privado';
   };
-  const pais = getCountry(user);
+  const pais = getCountry(num);
 
   const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
-  const price = rand(5, 25);
-  const subs = rand(1200, 45800);
-  const likes = rand(5000, 120000);
-  const views = rand(200000, 5000000);
-  const rating = (Math.random()*0.9+4.1).toFixed(1);
-  const posts = rand(80, 450);
-  const videos = rand(20, 150);
-  const earnings = rand(300, 8000);
+  const price = rand(9, 29);
+  const subs = rand(5000, 98000);
+  const likes = rand(10000, 500000);
+  const rating = (Math.random()*0.4+4.6).toFixed(1);
+  const posts = rand(150, 800);
+  const videos = rand(50, 300);
+  const earnings = rand(800, 15000);
 
-  const bios = [
-    `"Hola mis amores 😈 contenido exclusivo todos los días, videollamadas y packs al DM 🔥"`,
-    `"Bienvenido a mi perfil 💎 Aquí subo lo que no ves en IG. 18+ 😏"`,
-    `"Tu suscripción me ayuda mucho 💙 Packs personalizados y chats privados desde ${pais}"`,
-    `"Modelo/Streamer | Contenido VIP diario | Respondo DM 24/7"`
+  const biosCalientes = [
+    `"Hola mi amor 😈 ¿Listo para ver lo que no subo a IG? Packs +18 y videollamadas al DM 🔥"`,
+    `"Bienvenido bb 💎 Contenido exclusivo 24/7. Se muy travieso conmigo 😏 DM abierto"`,
+    `"Suscríbete y desbloquea todo 💦 Fotos, videos y chats privados. Solo para mayores de 18"`,
+    `"Modelo VIP desde ${pais} | Me encanta complacer 😘 ¿Qué quieres ver hoy?"`
   ];
-  const bio = bios[rand(0, bios.length-1)];
-  const estado = Math.random() > 0.5? `🟢 ACTIVO - Ganando $${earnings}/mes` : '🔴 OFFLINE';
+  const bio = biosCalientes[rand(0, biosCalientes.length-1)];
 
   if (command === 'onlyfans' || command === 'only' || command === 'of') {
     const caption = `
-*╭━━━[ 🔵 OnlyFans Profile ]━━━╮*
+*╭─❤️‍🔥 [ ONLYFANS VIP ] ❤️‍🔥─╮*
 
-*👤 CREADOR:* ${name} ✅
-*🔗 USUARIO:* @${user}
-*🌍 PAÍS:* ${pais}
-*🌐 LINK:* onlyfans.com/${name}
+*👑 CREADORA:* ${name} ✅
+*📱 @${user}* | ${pais}
+*🔗 onlyfans.com/${username}*
 
-*💰 SUSCRIPCIÓN:* $${price}.99 / mes
-*👥 SUSCRIPTORES:* ${subs.toLocaleString()}
-*❤️ LIKES:* ${likes.toLocaleString()}
-*👀 VISTAS:* ${views.toLocaleString()}
-*⭐ RATING:* ${rating}/5.0
+*💎 SUSCRIPCIÓN VIP:* $${price}.99 / mes
+*👥 ${subs.toLocaleString()}* Suscriptores calientes
+*❤️ ${likes.toLocaleString()}* Likes
+*⭐ ${rating}/5.0* Rating
 
-*📸 POSTS:* ${posts} fotos
-*🎥 VIDEOS:* ${videos} videos
+*📸 ${posts}* Fotos Exclusivas
+*🎥 ${videos}* Videos +18
 
-*💬 BIO:*
+*💬 SOBRE MÍ:*
 ${bio}
 
-*🔓 ESTADO:* ${estado}
+*💵 Ganancias:* $${earnings}/mes
+*🔥 ESTADO:* 🟢 EN VIVO AHORA
 
-*╰━━[ 😏 ¿Te suscribes? ]━━╯*
-> Usa.onlyfans @tag para otro
+*╰─😈 [ ¿Te unes al VIP? ] 😈─╯*
 `;
-    await conn.sendMessage(m.chat, { image: { url: pp }, caption, mentions: [who] }, { quoted: m });
+
+    await conn.sendMessage(m.chat, {
+      image: { url: pp },
+      caption,
+      mentions: [who],
+      contextInfo: {
+        externalAdReply: {
+          title: `${name} - OnlyFans VIP`,
+          body: `$${price}.99/mes • ${subs.toLocaleString()} fans`,
+          thumbnailUrl: pp,
+          sourceUrl: `https://onlyfans.com/${username}`
+        }
+      }
+    }, { quoted: m });
 
   } else if (command === 'leak' || command === 'filtrar') {
     const caption = `
-*🚨 ALERTA DE FILTRACIÓN 🚨*
+*🚨 FILTRACIÓN VIP +18 🚨🚨*
 
-*👤 CREADOR:* ${name} ✅
-*🔗 USUARIO:* @${user}
-*🌍 PAÍS:* ${pais}
-*🌐 onlyfans.com/${username}*
+*🔥 CREADORA:* ${name} ✅
+*📱 @${user}* | ${pais}
 
-*💰 PRECIO:* $${price}.99 / mes
-*👥 SUSCRIPTORES:* ${subs.toLocaleString()}
+*💎 CONTENIDO PREMIUM FILTRADO:*
+- ${posts} Fotos Privadas
+- ${videos} Videos Exclusivos
+- ${rand(10,80)} Packs Personalizados
+- Chats y Audios del DM
 
-*📸 ARCHIVOS FILTRADOS:*
-- ${posts} Fotos
-- ${videos} Videos
-- ${rand(5,50)} Packs Privados
+*💰 Valor: $${price*3}.99*
+*👥 ${subs.toLocaleString()} Suscriptores pagan por esto*
 
-*💵 GANANCIAS ESTIMADAS: $${earnings}/mes*
-*❤️ ${likes.toLocaleString()} Likes* | *⭐ ${rating}/5.0*
-
-*⚠️ AVISO: ESTE CONTENIDO ES 100% FICTICIO*
-*Generado por el bot únicamente para diversión 😂*
+*⚠️ ADVERTENCIA: SOLO PARA ADULTOS*
+*⚠️ TODO ES FICTICIO - BOT TROL 😈*
 `;
-    await conn.sendMessage(m.chat, { image: { url: pp }, caption, mentions: [who] }, { quoted: m });
+
+    await conn.sendMessage(m.chat, {
+      image: { url: pp },
+      caption,
+      mentions: [who]
+    }, { quoted: m });
   }
 };
 
