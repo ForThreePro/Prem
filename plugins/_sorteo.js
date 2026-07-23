@@ -25,7 +25,17 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
     lista[chatId][hoy] = lista[chatId][hoy] || []
     evidencia[chatId][hoy] = evidencia[chatId][hoy] || {}
 
-    const getNumero = (jid) => jid.split('@')[0].replace(/[^0-9]/g, '') // solo saca el numero
+    // NUEVA FUNCION: CONVERTIR LID A NUMERO REAL
+    const getNumeroReal = async (jid) => {
+        let num = jid.split('@')[0]
+        if(jid.endsWith('@lid')){
+            try {
+                let [result] = await conn.onWhatsApp(num) // busca el numero real del LID
+                return result?.jid? result.jid.split('@')[0] : num
+            } catch(e){ return num }
+        }
+        return num.replace(/[^0-9]/g, '')
+    }
 
     if (command.startsWith('set')) {
         if (!isAdmin) return m.reply('❄️ ❌ *SOLO ADMINS* ❌')
@@ -33,21 +43,23 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
         let mentioned = m.mentionedJid
         if (mentioned.length === 0) return m.reply(`❄️ ❌ *FALTA MENCIONAR* ❌`)
 
-        // CONVERTIR TODOS LOS JID A SOLO NUMEROS
-        let numeros = mentioned.map(j => getNumero(j))
+        // CONVERTIR TODOS A NUMERO REAL ANTES DE GUARDAR
+        let numeros = []
+        for(let j of mentioned){
+            numeros.push(await getNumeroReal(j))
+        }
 
-        sorteos[chatId][dia] = { usuarios: numeros, texto: textoFijo } // guardamos numeros
+        sorteos[chatId][dia] = { usuarios: numeros, texto: textoFijo }
         evidencia[chatId][dia] = {}
 
         let list = numeros.map((u, i) => `│ ❄️ ${i+1}. @${u}`).join('\n')
-        let msg = `┏━━━━━━━━━━━━━━━┓\n┃ ✧ 𝗔𝗦𝗜𝗚𝗡𝗔𝗖𝗜𝗢𝗡 𝗖𝗥𝗜𝗦𝗧𝗔𝗟 ✧ ┃\n┗━━━━━━━━━━━━━━━┛\n❄️ ${emojis[dia]} *${dia.toUpperCase()}* ${emojis[dia]}\n\n┌─ PARTICIPANTES ASIGNADOS ─┐\n${list}\n└──────────────────────────┘\n\n📜 *DIRECTIVA:* ${textoFijo}\n\n💎 Al terminar: *.listo + CAPTURA*`
+        let msg = `┏━━━━━━━━━━━━━━━┓\n┃ ✧ 𝗔𝗦𝗜𝗚𝗡𝗔𝗖𝗜𝗢𝗡 𝗖𝗥𝗜𝗦𝗧𝗔𝗟 ✧ ┃\n┗━━━━━━━━━━━━━━━┛\n❄️ ${emojis[dia]} *${dia.toUpperCase()}* ${emojis[dia]}\n\n┌─ PARTICIPANTES ASIGNADOS ─┐\n${list}\n└──────────────────────────┘\n\n📜 *DIRECTIVA:* ${textoFijo}`
         await conn.reply(m.chat, msg, m, { mentions: mentioned })
         return
     }
 
     if (command.startsWith('borrar')) {
         if (!isAdmin) return m.reply('❄️ ❌ *SOLO ADMINS* ❌')
-        if (!dias.includes(dia)) return m.reply('❄️ ❌ *DÍA INVÁLIDO* ❌')
         delete sorteos[chatId][dia]
         delete evidencia[chatId][dia]
         return m.reply(`✅ *BORRADO EXITOSO*\n❄️ Se eliminó *${dia.toUpperCase()}*`)
@@ -59,21 +71,21 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
         if (!sorteo) return m.reply(`❄️ ❌ *SIN ASIGNACIÓN* ❌`)
         let numeros = sorteo.usuarios
         let list = numeros.map((u, i) => `│ ❄️ ${i+1}. @${u}`).join('\n')
-        let msg = `┏━━━━━━━━━━━━━━━┓\n┃ ✧ 𝗥𝗘𝗖𝗢𝗥𝗗𝗔𝗧𝗢𝗥𝗜𝗢 𝗖𝗥𝗜𝗦𝗧𝗔𝗟 ✧ ┃\n┗━━━━━━━━━━━━━━━┛\n${emojis[command]} *${command.toUpperCase()}* ${emojis[command]}\n\n┌─ PARTICIPANTES ASIGNADOS ─┐\n${list}\n└──────────────────────────┘\n\n📜 ${sorteo.texto}`
+        let msg = `┏━━━━━━━━━━━━━━━┓\n┃ ✧ 𝗥𝗘𝗖𝗢𝗥𝗗𝗔𝗧𝗢𝗥𝗜𝗢 𝗖𝗥𝗜𝗦𝗧𝗔𝗟 ✧ ┃\n┗━━━━━━━━━━━━━━━┛\n${emojis[command]} *${command.toUpperCase()}*\n\n┌─ PARTICIPANTES ASIGNADOS ─┐\n${list}\n└──────────────────────────┘\n\n📜 ${sorteo.texto}`
         await conn.reply(m.chat, msg, m, { mentions: numeros.map(n => n + '@s.whatsapp.net') })
         return
     }
 
     if (command === 'listo') {
         let sorteoHoy = sorteos[chatId][hoy]
-        if (!sorteoHoy) return m.reply(`❄️ ❌ *NO HAY PARTICIPANTES ASIGNADOS HOY* ❌\n> Hoy es *${hoy.toUpperCase()}*`)
+        if (!sorteoHoy) return m.reply(`❄️ ❌ *NO HAY PARTICIPANTES ASIGNADOS HOY* ❌`)
 
-        let yoNumero = getNumero(m.sender)
+        let yoNumero = await getNumeroReal(m.sender) // <- TAMBIEN CONVERTIMOS EL TUYO
         let asignadosNumeros = sorteoHoy.usuarios
 
         if (!asignadosNumeros.includes(yoNumero)) {
             let listaNombres = asignadosNumeros.map(u => `@${u}`).join(' ')
-            return m.reply(`❄️ ❌ *NO ESTÁS ASIGNADO PARA HOY* ❌\n> Hoy: *${hoy.toUpperCase()}*\n❄️ *Asignados hoy:* ${listaNombres}`, null, { mentions: asignadosNumeros.map(n => n + '@s.whatsapp.net') })
+            return m.reply(`❄️ ❌ *NO ESTÁS ASIGNADO PARA HOY* ❌\n> Hoy: *${hoy.toUpperCase()}*\n> Tu numero detectado: ${yoNumero}\n❄️ *Asignados:* ${listaNombres}`, null, { mentions: asignadosNumeros.map(n => n + '@s.whatsapp.net') })
         }
 
         if (evidencia[chatId][hoy][yoNumero]) return m.reply('❄️ ✅ *YA REGISTRASTE EVIDENCIA HOY* ✅')
@@ -84,9 +96,8 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
 
         evidencia[chatId][hoy][yoNumero] = true
         let nombre = await conn.getName(m.sender)
-        let numero = yoNumero
-        if (!lista[chatId][hoy].some(p => getNumero(p.user) === yoNumero)) {
-            lista[chatId][hoy].push({user: m.sender, nombre, numero, premio: 'Participante', hora: new Date().toLocaleTimeString('es-PE', {timeZone: 'America/Lima'})})
+        if (!lista[chatId][hoy].some(p => p.numero === yoNumero)) {
+            lista[chatId][hoy].push({user: m.sender, nombre, numero: yoNumero, premio: 'Participante', hora: new Date().toLocaleTimeString('es-PE', {timeZone: 'America/Lima'})})
         }
         let caption = `✅ @${yoNumero} *CUMPLIÓ*\n${emojis[hoy]} *${hoy.toUpperCase()}* PERÚ`
         await conn.sendMessage(m.chat, {image: q, caption}, { mentions: [m.sender] })
