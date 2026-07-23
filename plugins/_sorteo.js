@@ -101,7 +101,8 @@ ${aurora}\n`
     }
 }
 
-handler.help = ['setlunes @tag','lunes','borrarlunes','ver']
+handler.help = ['setlunes @tag : Asigna encargados del lunes', 'setmartes @tag : Asigna encargados del martes', 'setmiercoles @tag : Asigna encargados del miercoles', 'setjueves @tag : Asigna encargados del jueves', 'setviernes @tag : Asigna encargados del viernes', 'setsabado @tag : Asigna encargados del sabado', 'lunes : Avisa y etiqueta a los de turno del lunes', 'martes : Avisa y etiqueta a los de turno del martes', 'miercoles : Avisa y etiqueta a los de turno del miercoles', 'jueves : Avisa y etiqueta a los de turno del jueves', 'viernes : Avisa y etiqueta a los de turno del viernes', 'sabado : Avisa y etiqueta a los de turno del sabado', 'borrarlunes : Borra asignación del lunes', 'borrarmartes : Borra asignación del martes', 'borrarmiercoles : Borra asignación del miercoles', 'borrarjueves : Borra asignación del jueves', 'borrarviernes : Borra asignación del viernes', 'borrarsabado : Borra asignación del sabado','ver : Muestra el cronograma semanal completo'
+]
 handler.tags = ['sorteos']
 handler.command = /^(setlunes|setmartes|setmiercoles|setjueves|setviernes|setsabado|borrarlunes|borrarmartes|borrarmiercoles|borrarjueves|borrarviernes|borrarsabado|lunes|martes|miercoles|jueves|viernes|sabado|ver)$/i
 handler.group = true
