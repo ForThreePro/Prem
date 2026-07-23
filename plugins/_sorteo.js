@@ -1,11 +1,9 @@
 let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
 
     global.db.data.sorteos = global.db.data.sorteos || {}
-    global.db.data.sorteosPendientes = global.db.data.sorteosPendientes || {}
     global.db.data.sorteosEvidencia = global.db.data.sorteosEvidencia || {}
     global.db.data.sorteosLista = global.db.data.sorteosLista || {}
     let sorteos = global.db.data.sorteos
-    let pendientes = global.db.data.sorteosPendientes
     let evidencia = global.db.data.sorteosEvidencia
     let lista = global.db.data.sorteosLista
 
@@ -24,10 +22,10 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
     let chatId = m.chat
 
     sorteos[chatId] = sorteos[chatId] || {}
-    pendientes[chatId] = pendientes[chatId] || {}
     evidencia[chatId] = evidencia[chatId] || {}
     lista[chatId] = lista[chatId] || {}
     lista[chatId][hoy] = lista[chatId][hoy] || []
+    evidencia[chatId][hoy] = evidencia[chatId][hoy] || {}
 
     // ===== 1. SET ASIGNACIÓN - SOLO ADMIN =====
     if (command.startsWith('set')) {
@@ -37,7 +35,6 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
         if (mentioned.length === 0) return m.reply(`❄️ ❌ *FALTA MENCIONAR* ❌\n> *Ejemplo:* ${usedPrefix}set${dia} @user1 @user2`)
 
         sorteos[chatId][dia] = { usuarios: mentioned, texto: textoFijo }
-        pendientes[chatId][dia] = [...mentioned]
         evidencia[chatId][dia] = {}
 
         let list = mentioned.map((u, i) => `│ ❄️ ${i+1}. @${u.split('@')[0]}`).join('\n')
@@ -61,7 +58,6 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
         if (!sorteos[chatId][dia]) return m.reply(`❄️ ❌ *NO HAY ASIGNACIÓN* ❌\n> El ${dia} está vacío`)
 
         delete sorteos[chatId][dia]
-        delete pendientes[chatId][dia]
         delete evidencia[chatId][dia]
         return m.reply(`✅ *BORRADO EXITOSO*\n❄️ Se eliminó la asignación de *${dia.toUpperCase()}*`)
     }
@@ -92,11 +88,12 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
         return
     }
 
-    // ===== 4. LISTO CON EVIDENCIA - FIX DETECCIÓN =====
+    // ===== 4. LISTO CON EVIDENCIA =====
     if (command === 'listo') {
-        if (!pendientes[chatId][hoy] || pendientes[chatId][hoy].length === 0) return m.reply(`❄️ ❌ *NO HAY PARTICIPANTES ASIGNADOS HOY* ❌\n> Hoy es *${hoy.toUpperCase()}* en Perú`)
+        let sorteoHoy = sorteos[chatId][hoy]
+        if (!sorteoHoy) return m.reply(`❄️ ❌ *NO HAY PARTICIPANTES ASIGNADOS HOY* ❌\n> Hoy es *${hoy.toUpperCase()}* en Perú\n> Usa: ${usedPrefix}set${hoy} @user`)
 
-        let asignados = pendientes[chatId][hoy].map(j => j.toLowerCase())
+        let asignados = sorteoHoy.usuarios.map(j => j.toLowerCase())
         let yo = m.sender.toLowerCase()
 
         if (!asignados.includes(yo)) {
@@ -104,12 +101,13 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
             return m.reply(`❄️ ❌ *NO ESTÁS ASIGNADO PARA HOY* ❌\n> Hoy es *${hoy.toUpperCase()}* en Perú\n❄️ *Asignados hoy:* ${listaNombres}`, null, { mentions: asignados })
         }
 
+        if (evidencia[chatId][hoy][yo]) return m.reply('❄️ ✅ *YA REGISTRASTE EVIDENCIA HOY* ✅')
+
         let q = m.quoted? m.quoted : m
         let mime = (q.msg || q).mimetype || ''
         if (!/image/.test(mime)) return m.reply(`❄️ ❌ *MANDA CAPTURA* ❌\n> Envía la foto + pie:.listo`)
 
         evidencia[chatId][hoy][yo] = true
-        pendientes[chatId][hoy] = pendientes[chatId][hoy].filter(u => u.toLowerCase()!== yo)
 
         let nombre = await conn.getName(m.sender)
         let numero = m.sender.split('@')[0]
