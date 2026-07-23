@@ -11,6 +11,9 @@ let handler = async (m, { conn, command, usedPrefix, isAdmin }) => {
     let dia = command.replace('set','').replace('borrar','').toLowerCase()
     sorteos[chatId] = sorteos[chatId] || {}
 
+    // Obtener foto del grupo
+    let pp = await conn.profilePictureUrl(chatId, 'image').catch(_ => 'https://i.imgur.com/8K2JhZQ.jpg')
+
     // ===== 1. ASIGNAR.setlunes @user =====
     if (command.startsWith('set')) {
         if (!isAdmin) return m.reply(`${aurora}\n ACCESO DENEGADO\n${aurora}`)
@@ -34,7 +37,7 @@ ${list}
 
 ~* brilla con tu sorteo *~
 Usa *${usedPrefix}${dia}* para recordar`
-        await conn.reply(m.chat, msg, m, { mentions: mentioned })
+        await conn.sendMessage(m.chat, { image: { url: pp }, caption: msg, mentions: mentioned })
         return
     }
 
@@ -70,7 +73,7 @@ ${list}
 3. Compartir evidencia
 
 Que tu luz ilumine el grupo ✨`
-        await conn.reply(m.chat, msg, m, { mentions: asignados })
+        await conn.sendMessage(m.chat, { image: { url: pp }, caption: msg, mentions: asignados })
         return
     }
 
@@ -93,7 +96,8 @@ ${aurora}\n`
             })
         }
         txt += `\n~* que las auroras los guíen *~`
-        return conn.reply(m.chat, txt, m, { mentions: [...new Set(todos)] })
+        await conn.sendMessage(m.chat, { image: { url: pp }, caption: txt, mentions: [...new Set(todos)] })
+        return
     }
 }
 
