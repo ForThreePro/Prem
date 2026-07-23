@@ -10,18 +10,22 @@ const handler = async (m, { conn, command }) => {
     } catch {}
   }
 
-  // SACAR NUMERO LIMPIO
-  let num = who.split('@')[0].split(':')[0]; // quita : y lid
+  let num = who.split('@')[0].split(':')[0];
 
-  let name = 'Usuario';
-  try { name = await conn.getName(who) || 'Usuario'; } catch {}
-
+  let nameReal = 'Usuario';
+  try { nameReal = await conn.getName(who) || 'Usuario'; } catch {}
   let pp = 'https://i.ibb.co/2kR5Hq0/only-default.jpg';
   try { pp = await conn.profilePictureUrl(who, 'image'); } catch {}
 
-  let username = name.replace(/\s/g,'').toLowerCase();
+  // APODOS CALIENTES RANDOM 😈
+  const apodos = [
+    'LunaSexy', 'NenaProhibida', 'DulceVeneno', 'GatitaVIP', 'ReinaDelPlacer',
+    'DiablaCaliente', 'AzucarMorena', 'Tentacion18', 'PecadoDulce', 'BombonVIP',
+    'MielProhibida', 'NinfitaHot', 'KissCaliente', 'DiosaSensual', 'CoquetaXXX'
+  ];
+  const name = apodos[Math.floor(Math.random() * apodos.length)];
+  const username = name.toLowerCase();
 
-  // DETECTAR PAIS - FUNCIONA 100%
   const getCountry = (n) => {
     if (n.startsWith('51')) return '🇵🇪 Perú';
     if (n.startsWith('52')) return '🇲🇽 México';
@@ -46,10 +50,10 @@ const handler = async (m, { conn, command }) => {
   const earnings = rand(800, 15000);
 
   const biosCalientes = [
-    `"Hola mi amor 😈 ¿Listo para ver lo que no subo a IG? Packs +18 y videollamadas al DM 🔥"`,
-    `"Bienvenido bb 💎 Contenido exclusivo 24/7. Se muy travieso conmigo 😏 DM abierto"`,
-    `"Suscríbete y desbloquea todo 💦 Fotos, videos y chats privados. Solo para mayores de 18"`,
-    `"Modelo VIP desde ${pais} | Me encanta complacer 😘 ¿Qué quieres ver hoy?"`
+    `"Hola mi amor 😈 Soy ${name} y aquí subo lo que no ves en ningún lado 🔥 DM para packs"`,
+    `"Bienvenido bb 💎 ${name} en vivo 24/7. ¿Listo para ser travieso conmigo? 😏"`,
+    `"Suscríbete a ${name} VIP 💦 Fotos +18, videos y videollamadas privadas"`,
+    `"Soy ${name} desde ${pais} | Me encanta complacer 😘 ¿Qué fantasía cumplo hoy?"`
   ];
   const bio = biosCalientes[rand(0, biosCalientes.length-1)];
 
@@ -75,7 +79,7 @@ ${bio}
 *💵 Ganancias:* $${earnings}/mes
 *🔥 ESTADO:* 🟢 EN VIVO AHORA
 
-*╰─😈 [ ¿Te unes al VIP? ] 😈─╯*
+*╰─😈 [ ¿Te unes al VIP de ${name}? ] 😈─╯*
 > Todo es FICTICIO para trolear 😂
 `;
 
@@ -83,19 +87,20 @@ ${bio}
 
   } else if (command === 'leak' || command === 'filtrar') {
     const caption = `
-*🚨🚨 FILTRACIÓN VIP +18 🚨🚨*
+*🚨 FILTRACIÓN VIP +18 🚨🚨*
 
 *🔥 CREADORA:* ${name} ✅
 *📱 @${num}* | ${pais}
+*🌐 onlyfans.com/${username}*
 
-*💎 CONTENIDO PREMIUM FILTRADO:*
+*💎 CONTENIDO PREMIUM DE ${name.toUpperCase()} FILTRADO:*
 - ${posts} Fotos Privadas
 - ${videos} Videos Exclusivos
 - ${rand(10,80)} Packs Personalizados
 - Chats y Audios del DM
 
 *💰 Valor Estimado: $${price*3}.99*
-*👥 ${subs.toLocaleString()} Suscriptores pagan por esto*
+*👥 ${subs.toLocaleString()} Suscriptores pagan por ver a ${name}*
 
 *⚠️ AVISO: SOLO PARA ADULTOS*
 *⚠️ TODO ES FICTICIO - GENERADO POR BOT 😈*
