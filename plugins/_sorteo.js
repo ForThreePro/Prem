@@ -5,97 +5,94 @@ let handler = async (m, { conn, command, usedPrefix, isAdmin }) => {
     let chatId = m.chat
 
     const dias = ['lunes','martes','miercoles','jueves','viernes','sabado']
-    const emojis = {lunes:'🌙', martes:'☀️', miercoles:'⚡', jueves:'💎', viernes:'🔥', sabado:'👑'}
+    const emojis = {lunes:'🌙', martes:'🌌', miercoles:'✨', jueves:'🌠', viernes:'💫', sabado:'👑'}
+    const aurora = '~*~*~*~*~*~*~*~*~*~'
 
     let dia = command.replace('set','').replace('borrar','').toLowerCase()
     sorteos[chatId] = sorteos[chatId] || {}
 
-    const limpiar = (jid) => jid.split('@')[0].replace(/[^0-9]/g, '')
-
     // ===== 1. ASIGNAR.setlunes @user =====
     if (command.startsWith('set')) {
-        if (!isAdmin) return m.reply(`❄️ *ACCESO DENEGADO* ❄️ Solo admins`)
-        if (!dias.includes(dia)) return m.reply(`❄️ *DÍA INVÁLIDO*`)
+        if (!isAdmin) return m.reply(`${aurora}\n ACCESO DENEGADO\n${aurora}`)
+        if (!dias.includes(dia)) return m.reply(`${aurora}\n DÍA INVÁLIDO\n${aurora}`)
 
         let mentioned = m.mentionedJid
-        if (mentioned.length === 0) return m.reply(`❄️ *FALTA MENCIONAR*\n*Ejemplo:* ${usedPrefix}set${dia} @user1 @user2`)
+        if (mentioned.length === 0) return m.reply(`${aurora}\n FALTA MENCIONAR\nEj: ${usedPrefix}set${dia} @user1 @user2\n${aurora}`)
 
-        sorteos[chatId][dia] = [...new Set(mentioned)] // Guardamos el JID completo, no solo el número
+        sorteos[chatId][dia] = [...new Set(mentioned)]
 
-        let list = sorteos[chatId][dia].map((u, i) => `┃ ${i+1} │ @${u.split('@')[0]}`).join('\n')
-        let msg = `╔══════════════╗
-║ ❄️ CRISTAL SORTEOS ❄️ ║
-╚══════════════╝
+        let list = sorteos[chatId][dia].map((u, i) => `✨ ${i+1}. @${u.split('@')[0]}`).join('\n')
+        let msg = `${aurora}
+    AURORA ${dia.toUpperCase()}
+${aurora}
 
-◆ DIA: ${emojis[dia]} ${dia.toUpperCase()} ${emojis[dia]}
-◆ ESTADO: ASIGNADO ✓
+🌌 Estado: ASIGNADO
+📅 Fecha: ${new Date().toLocaleDateString('es')}
 
-┌── PARTICIPANTES ──┐
+✧ LUZ DEL NORTE ✧
 ${list}
-└───────────────────┘
 
-📋 INSTRUCCIÓN:
-Realizar sorteo + Reaccionar + Compartir
-
-Usa *${usedPrefix}${dia}* para ver el recordatorio`
+~* brilla con tu sorteo *~
+Usa *${usedPrefix}${dia}* para recordar`
         await conn.reply(m.chat, msg, m, { mentions: mentioned })
         return
     }
 
     // ===== 2. BORRAR.borrarlunes =====
     if (command.startsWith('borrar')) {
-        if (!isAdmin) return m.reply(`❄️ *ACCESO DENEGADO* ❄️ Solo admins`)
+        if (!isAdmin) return m.reply(`${aurora}\n ACCESO DENEGADO\n${aurora}`)
+        if (!sorteos[chatId][dia]) return m.reply(`${aurora}\n NO HAY LUZ EN ${dia.toUpperCase()}\n${aurora}`)
         delete sorteos[chatId][dia]
-        return m.reply(`✅ *ELIMINADO*\nSe borró la asignación de *${dia.toUpperCase()}*`)
+        return m.reply(`${aurora}\n AURORA APAGADA\nSe borró ${dia.toUpperCase()}\n${aurora}`)
     }
 
     // ===== 3. RECORDATORIO.lunes =====
     if (dias.includes(command.toLowerCase())) {
-        if (!isAdmin) return m.reply(`❄️ *ACCESO DENEGADO* ❄️ Solo admins`)
+        if (!isAdmin) return m.reply(`${aurora}\n ACCESO DENEGADO\n${aurora}`)
         let asignados = sorteos[chatId][command.toLowerCase()]
-        if (!asignados ||!asignados.length) return m.reply(`❄️ *SIN ASIGNACIÓN*\nUsa: ${usedPrefix}set${command} @user`)
+        if (!asignados ||!asignados.length) return m.reply(`${aurora}\n CIELO VACÍO\nUsa: ${usedPrefix}set${command} @user\n${aurora}`)
 
-        let list = asignados.map((u, i) => `┃ ${i+1} │ @${u.split('@')[0]}`).join('\n')
+        let list = asignados.map((u, i) => `✨ ${i+1}. @${u.split('@')[0]}`).join('\n')
 
-        let msg = `╔══════════════╗
-║ ❄️ RECORDATORIO ❄️ ║
-╚══════════════╝
+        let msg = `${aurora}
+    AURORA ${command.toUpperCase()}
+${aurora}
 
-◆ DIA: ${emojis[command]} ${command.toUpperCase()} ${emojis[command]}
-◆ ESTADO: PENDIENTE ⚠️
+🌌 Estado: BRILLANDO
+${emojis[command]} Hoy te toca ${command.toUpperCase()} ${emojis[command]}
 
-┌── PARTICIPANTES ──┐
+✧ CONSTELACIÓN ✧
 ${list}
-└───────────────────┘
 
-📋 INSTRUCCIÓN:
-Realizar sorteo + Reaccionar + Compartir
+~* Tareas estelares *~
+1. Realizar sorteo
+2. Pedir reacciones 
+3. Compartir evidencia
 
-❄️ Cumplan su turno`
-        await conn.reply(m.chat, msg, m, { mentions: asignados }) // <-- Aquí ya pasamos el JID completo
+Que tu luz ilumine el grupo ✨`
+        await conn.reply(m.chat, msg, m, { mentions: asignados })
         return
     }
 
     // ===== 4. VER TODO.ver =====
     if (command === 'ver') {
         let diasConData = dias.filter(d => Array.isArray(sorteos[chatId][d]) && sorteos[chatId][d].length > 0)
-        if (diasConData.length === 0) return m.reply(`❄️ *CRONOGRAMA VACÍO*`)
+        if (diasConData.length === 0) return m.reply(`${aurora}\n CIELO NOCTURNO VACÍO\n${aurora}`)
 
-        let txt = `╔══════════════════════╗
-║ ❄️ CRONOGRAMA SEMANAL ❄️ ║
-╚══════════════╝\n\n`
+        let txt = `${aurora}
+   CIELO SEMANAL
+${aurora}\n`
 
         let todos = []
         for(let d of dias){
-            if(!Array.isArray(sorteos[chatId][d])) continue
-            txt += `◆ ${emojis[d]} ${d.toUpperCase()}\n`
+            if(!Array.isArray(sorteos[chatId][d]) || sorteos[chatId][d].length === 0) continue
+            txt += `\n🌌 ${emojis[d]} ${d.toUpperCase()}\n`
             sorteos[chatId][d].forEach((u, i) => {
-                txt += `┃ ${i+1} │ @${u.split('@')[0]}\n`
+                txt += `✨ ${i+1}. @${u.split('@')[0]}\n`
                 todos.push(u)
             })
-            txt += `│\n`
         }
-        txt += `╚══════════════╝`
+        txt += `\n~* que las auroras los guíen *~`
         return conn.reply(m.chat, txt, m, { mentions: [...new Set(todos)] })
     }
 }
@@ -104,5 +101,5 @@ handler.help = ['setlunes @tag','lunes','borrarlunes','ver']
 handler.tags = ['sorteos']
 handler.command = /^(setlunes|setmartes|setmiercoles|setjueves|setviernes|setsabado|borrarlunes|borrarmartes|borrarmiercoles|borrarjueves|borrarviernes|borrarsabado|lunes|martes|miercoles|jueves|viernes|sabado|ver)$/i
 handler.group = true
-handler.admin = true // solo admins pueden usarlo
+handler.admin = true
 export default handler
