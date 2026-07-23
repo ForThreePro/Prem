@@ -3,20 +3,20 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
     global.db.data.sorteos = global.db.data.sorteos || {}
     global.db.data.sorteosEvidencia = global.db.data.sorteosEvidencia || {}
     global.db.data.sorteosLista = global.db.data.sorteosLista || {}
+    global.db.data.sorteosMap = global.db.data.sorteosMap || {} // MAPA LID -> NUMERO
     let sorteos = global.db.data.sorteos
     let evidencia = global.db.data.sorteosEvidencia
     let lista = global.db.data.sorteosLista
+    let mapa = global.db.data.sorteosMap
 
     const dias = ['lunes','martes','miercoles','jueves','viernes','sabado']
     const emojis = {lunes:'🌙', martes:'☀️', miercoles:'⚡', jueves:'💎', viernes:'🔥', sabado:'👑'}
     const textoFijo = 'Realiza el sorteo del día. Reacciona y comparte en el grupo'
 
     let dia = command.replace('set','').replace('borrar','').toLowerCase()
-
     const options = { weekday: 'long', timeZone: 'America/Lima' }
     let hoyRaw = new Intl.DateTimeFormat('es-PE', options).format(new Date()).toLowerCase()
     let hoy = hoyRaw.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-
     let chatId = m.chat
 
     sorteos[chatId] = sorteos[chatId] || {}
@@ -24,55 +24,24 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
     lista[chatId] = lista[chatId] || {}
     lista[chatId][hoy] = lista[chatId][hoy] || []
     evidencia[chatId][hoy] = evidencia[chatId][hoy] || {}
+    mapa[chatId] = mapa[chatId] || {}
 
-    // NUEVA FUNCION: CONVERTIR LID A NUMERO REAL
-    const getNumeroReal = async (jid) => {
-        let num = jid.split('@')[0]
-        if(jid.endsWith('@lid')){
-            try {
-                let [result] = await conn.onWhatsApp(num) // busca el numero real del LID
-                return result?.jid? result.jid.split('@')[0] : num
-            } catch(e){ return num }
-        }
-        return num.replace(/[^0-9]/g, '')
-    }
+    const getNumero = (jid) => jid.split('@')[0].replace(/[^0-9]/g, '')
+
+    // REGISTRAR: cada vez que alguien habla guardamos LID = Numero
+    mapa[chatId][getNumero(m.sender)] = m.sender
 
     if (command.startsWith('set')) {
         if (!isAdmin) return m.reply('❄️ ❌ *SOLO ADMINS* ❌')
-        if (!dias.includes(dia)) return m.reply('❄️ ❌ *DÍA INVÁLIDO* ❌')
         let mentioned = m.mentionedJid
         if (mentioned.length === 0) return m.reply(`❄️ ❌ *FALTA MENCIONAR* ❌`)
 
-        // CONVERTIR TODOS A NUMERO REAL ANTES DE GUARDAR
-        let numeros = []
-        for(let j of mentioned){
-            numeros.push(await getNumeroReal(j))
-        }
-
+        let numeros = mentioned.map(j => getNumero(j)) // guarda el LID o numero que sea
         sorteos[chatId][dia] = { usuarios: numeros, texto: textoFijo }
         evidencia[chatId][dia] = {}
 
         let list = numeros.map((u, i) => `│ ❄️ ${i+1}. @${u}`).join('\n')
-        let msg = `┏━━━━━━━━━━━━━━━┓\n┃ ✧ 𝗔𝗦𝗜𝗚𝗡𝗔𝗖𝗜𝗢𝗡 𝗖𝗥𝗜𝗦𝗧𝗔𝗟 ✧ ┃\n┗━━━━━━━━━━━━━━━┛\n❄️ ${emojis[dia]} *${dia.toUpperCase()}* ${emojis[dia]}\n\n┌─ PARTICIPANTES ASIGNADOS ─┐\n${list}\n└──────────────────────────┘\n\n📜 *DIRECTIVA:* ${textoFijo}`
-        await conn.reply(m.chat, msg, m, { mentions: mentioned })
-        return
-    }
-
-    if (command.startsWith('borrar')) {
-        if (!isAdmin) return m.reply('❄️ ❌ *SOLO ADMINS* ❌')
-        delete sorteos[chatId][dia]
-        delete evidencia[chatId][dia]
-        return m.reply(`✅ *BORRADO EXITOSO*\n❄️ Se eliminó *${dia.toUpperCase()}*`)
-    }
-
-    if (dias.includes(command.toLowerCase())) {
-        if (!isAdmin) return m.reply('❄️ ❌ *SOLO ADMINS* ❌')
-        let sorteo = sorteos[chatId][command.toLowerCase()]
-        if (!sorteo) return m.reply(`❄️ ❌ *SIN ASIGNACIÓN* ❌`)
-        let numeros = sorteo.usuarios
-        let list = numeros.map((u, i) => `│ ❄️ ${i+1}. @${u}`).join('\n')
-        let msg = `┏━━━━━━━━━━━━━━━┓\n┃ ✧ 𝗥𝗘𝗖𝗢𝗥𝗗𝗔𝗧𝗢𝗥𝗜𝗢 𝗖𝗥𝗜𝗦𝗧𝗔𝗟 ✧ ┃\n┗━━━━━━━━━━━━━━━┛\n${emojis[command]} *${command.toUpperCase()}*\n\n┌─ PARTICIPANTES ASIGNADOS ─┐\n${list}\n└──────────────────────────┘\n\n📜 ${sorteo.texto}`
-        await conn.reply(m.chat, msg, m, { mentions: numeros.map(n => n + '@s.whatsapp.net') })
+        await conn.reply(m.chat, `❄️ ${emojis[dia]} *${dia.toUpperCase()}* \n\n${list}`, m, { mentions: mentioned })
         return
     }
 
@@ -80,52 +49,46 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
         let sorteoHoy = sorteos[chatId][hoy]
         if (!sorteoHoy) return m.reply(`❄️ ❌ *NO HAY PARTICIPANTES ASIGNADOS HOY* ❌`)
 
-        let yoNumero = await getNumeroReal(m.sender) // <- TAMBIEN CONVERTIMOS EL TUYO
-        let asignadosNumeros = sorteoHoy.usuarios
+        let yoNumero = getNumero(m.sender)
+        let yoJid = m.sender
 
-        if (!asignadosNumeros.includes(yoNumero)) {
-            let listaNombres = asignadosNumeros.map(u => `@${u}`).join(' ')
-            return m.reply(`❄️ ❌ *NO ESTÁS ASIGNADO PARA HOY* ❌\n> Hoy: *${hoy.toUpperCase()}*\n> Tu numero detectado: ${yoNumero}\n❄️ *Asignados:* ${listaNombres}`, null, { mentions: asignadosNumeros.map(n => n + '@s.whatsapp.net') })
+        // BUSCAR: si estoy asignado por numero O por LID
+        let estoy = sorteoHoy.usuarios.some(u => {
+            let jidAsignado = mapa[chatId][u] || u + '@s.whatsapp.net' // busca si ese numero tiene un JID guardado
+            return getNumero(jidAsignado) === yoNumero || u === yoNumero
+        })
+
+        if (!estoy) {
+            let listaNombres = sorteoHoy.usuarios.map(u => `@${u}`).join(' ')
+            return m.reply(`❄️ ❌ *NO ESTÁS ASIGNADO PARA HOY* ❌\n> Tu ID: ${yoNumero}`, null, { mentions: sorteoHoy.usuarios.map(n => mapa[chatId][n] || n + '@s.whatsapp.net') })
         }
 
         if (evidencia[chatId][hoy][yoNumero]) return m.reply('❄️ ✅ *YA REGISTRASTE EVIDENCIA HOY* ✅')
 
         let q = m.quoted? m.quoted : m
-        let mime = (q.msg || q).mimetype || ''
-        if (!/image/.test(mime)) return m.reply(`❄️ ❌ *MANDA CAPTURA* ❌`)
+        if (!/image/.test((q.msg || q).mimetype || '')) return m.reply(`❄️ ❌ *MANDA CAPTURA* ❌`)
 
         evidencia[chatId][hoy][yoNumero] = true
         let nombre = await conn.getName(m.sender)
         if (!lista[chatId][hoy].some(p => p.numero === yoNumero)) {
-            lista[chatId][hoy].push({user: m.sender, nombre, numero: yoNumero, premio: 'Participante', hora: new Date().toLocaleTimeString('es-PE', {timeZone: 'America/Lima'})})
+            lista[chatId][hoy].push({user: m.sender, nombre, numero: yoNumero, premio: 'Participante'})
         }
-        let caption = `✅ @${yoNumero} *CUMPLIÓ*\n${emojis[hoy]} *${hoy.toUpperCase()}* PERÚ`
-        await conn.sendMessage(m.chat, {image: q, caption}, { mentions: [m.sender] })
+        await conn.sendMessage(m.chat, {image: q, caption: `✅ @${yoNumero} *CUMPLIÓ*`}, { mentions: [m.sender] })
         return
     }
 
-    if (command === 'verlista') {
-        if (lista[chatId][hoy].length === 0) return m.reply(`❄️ ❌ *LISTA VACÍA* ❌`)
-        let txt = `┏━━━━━━━━━━━━━━━┓\n┃ ✧ 𝗟𝗜𝗦𝗧𝗔 𝗗𝗘 𝗣𝗔𝗥𝗧𝗜𝗖𝗜𝗣𝗔𝗡𝗧𝗘𝗦 ✧ ┃\n┗━━━━━━━━━━━━━━━┛\n${emojis[hoy]} *${hoy.toUpperCase()}* PERÚ\n`
-        lista[chatId][hoy].forEach((p, i) => { txt += `💎 *${i+1}.* ${p.nombre}\n 📱 ${p.numero}\n\n` })
-        return conn.reply(m.chat, txt, m)
-    }
-
-    if (command === 'verdias') {
-        if (Object.keys(sorteos[chatId]).length === 0) return m.reply('❄️ ❌ *SIN ASIGNACIONES* ❌')
-        let horaPeru = new Date().toLocaleTimeString('es-PE', {timeZone: 'America/Lima'})
-        let txt = `┏━━━━━━━━━━━━━━━┓\n┃ ✧ 𝗖𝗥𝗢𝗡𝗢𝗚𝗥𝗔𝗠𝗔 𝗦𝗘𝗠𝗔𝗡𝗔𝗟 ✧ ┃\n┗━━━━━━━━━━━━━━━┛\n🕐 *Hora Perú:* ${horaPeru}\n🗓️ *Hoy:* ${hoy.toUpperCase()}\n\n`
-        for(let d of dias){
-            if(!sorteos[chatId][d]) continue
-            txt += `${emojis[d]} *${d.toUpperCase()}*\n`
-            sorteos[chatId][d].usuarios.forEach((u, i) => { txt += `│ ❄️ ${i+1}. @${u}\n` })
-            txt += `│\n`
-        }
-        return conn.reply(m.chat, txt, m, { mentions: Object.values(sorteos[chatId]).flatMap(s => s.usuarios.map(n => n + '@s.whatsapp.net')) })
+    if (dias.includes(command.toLowerCase())) {
+        if (!isAdmin) return m.reply('❄️ ❌ *SOLO ADMINS* ❌')
+        let sorteo = sorteos[chatId][command.toLowerCase()]
+        if (!sorteo) return m.reply(`❄️ ❌ *SIN ASIGNACIÓN* ❌`)
+        let menciones = sorteo.usuarios.map(n => mapa[chatId][n] || n + '@s.whatsapp.net')
+        let list = sorteo.usuarios.map((u, i) => `│ ❄️ ${i+1}. @${u}`).join('\n')
+        await conn.reply(m.chat, `${emojis[command]} *${command.toUpperCase()}*\n\n${list}`, m, { mentions: menciones })
+        return
     }
 }
 
-handler.help = ['setlunes @user','setmartes @user','setmiercoles @user','setjueves @user','setviernes @user','setsabado @user','borrarlunes','borrarmartes','borrarmiercoles','borrarjueves','borrarviernes','borrarsabado','lunes','martes','miercoles','jueves','viernes','sabado','verdias','listo','verlista']
+handler.help = ['setlunes @user','setjueves @user','jueves','listo']
 handler.tags = ['sorteos']
 handler.command = /^(setlunes|setmartes|setmiercoles|setjueves|setviernes|setsabado|borrarlunes|borrarmartes|borrarmiercoles|borrarjueves|borrarviernes|borrarsabado|lunes|martes|miercoles|jueves|viernes|sabado|listo|verlista|verdias)$/i
 handler.group = true
