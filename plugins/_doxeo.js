@@ -1,32 +1,33 @@
 const handler = async (m, { conn, text }) => {
+  // --- DETECTOR ---
   let who = m.mentionedJid && m.mentionedJid[0]? m.mentionedJid[0] : m.quoted? m.quoted.sender : null;
-  let nameText = text? text.replace(/@\d+/, '').trim() : '';
+  let nameText = text? text.replace(/@\d+/g, '').replace(/^a\s+/i, '').trim() : '';
 
-  let targetName = 'Usuario';
+  let targetName;
   let mentions = [];
 
   if (who) {
-    try {
-      targetName = await conn.getName(who) || 'Usuario';
-    } catch {
-      targetName = 'Usuario';
-    }
     mentions = [who];
-  } else if (nameText && nameText.length > 0) {
-    who = null;
+    try {
+      targetName = await conn.getName(who);
+    } catch {}
+    if (!targetName || targetName === 'Usuario') {
+      targetName = nameText || who.split('@')[0];
+    }
+  } else if (nameText) {
     targetName = nameText;
+    who = null;
   } else {
     who = m.sender;
-    try {
-      targetName = await conn.getName(who) || 'Tu';
-    } catch {
-      targetName = 'Tu';
-    }
     mentions = [who];
+    try {
+      targetName = await conn.getName(who) || m.pushName || 'Tu';
+    } catch {
+      targetName = m.pushName || 'Tu';
+    }
   }
 
-  // FIX DEL ERROR: asegurar que siempre sea string antes del toUpperCase
-  targetName = String(targetName || 'Usuario');
+  targetName = String(targetName).trim() || 'Usuario';
   const safeUpper = targetName.toUpperCase();
 
   const randIP = () => `${Math.floor(Math.random()*223)+1}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
