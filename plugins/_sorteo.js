@@ -10,7 +10,7 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
     let dia = command.replace('set','').replace('borrar','').toLowerCase()
     sorteos[chatId] = sorteos[chatId] || {}
 
-    const num = (jid) => jid.split('@')[0]
+    const limpiar = (jid) => jid.split('@')[0].replace(/[^0-9]/g, '') // quita + y espacios
 
     // ===== 1. ASIGNAR =====
     if (command.startsWith('set')) {
@@ -20,12 +20,12 @@ let handler = async (m, { conn, command, args, usedPrefix, isAdmin }) => {
         let mentioned = m.mentionedJid
         if (mentioned.length === 0) return m.reply(`❄️ *FALTA MENCIONAR*\n*Ejemplo:* ${usedPrefix}set${dia} @user1 @user2`)
 
-        sorteos[chatId][dia] = [...new Set(mentioned.map(j => num(j)))]
+        sorteos[chatId][dia] = [...new Set(mentioned.map(j => limpiar(j)))]
 
         let list = sorteos[chatId][dia].map((u, i) => `┃ ${i+1} │ @${u}`).join('\n')
-        let msg = `╔══════════════════════╗
+        let msg = `╔══════════════╗
 ║ ❄️ CRISTAL SORTEOS ❄️ ║
-╚══════════════════════╝
+╚══════════════╝
 
 ◆ DIA: ${emojis[dia]} ${dia.toUpperCase()} ${emojis[dia]}
 ◆ ESTADO: ASIGNADO ✓
@@ -56,7 +56,7 @@ Usa.${dia} para ver el recordatorio`
         if (!asignados ||!Array.isArray(asignados)) return m.reply(`❄️ *SIN ASIGNACIÓN*\nUsa: ${usedPrefix}set${command} @user`)
 
         let list = asignados.map((u, i) => `┃ ${i+1} │ @${u}`).join('\n')
-        let menciones = asignados.map(n => n + '@s.whatsapp.net')
+        let menciones = asignados.map(n => n + '@s.whatsapp.net') // AQUI ESTABA EL ERROR
 
         let msg = `╔══════════════╗
 ║ ❄️ RECORDATORIO ❄️ ║
@@ -87,12 +87,12 @@ Realizar sorteo + Reaccionar + Compartir
 ╚══════════════════════╝\n\n`
 
         for(let d of dias){
-            if(!Array.isArray(sorteos[chatId][d])) continue // <-- ARREGLO AQUI
+            if(!Array.isArray(sorteos[chatId][d])) continue
             txt += `◆ ${emojis[d]} ${d.toUpperCase()}\n`
             sorteos[chatId][d].forEach((u, i) => { txt += `┃ ${i+1} │ @${u}\n` })
             txt += `│\n`
         }
-        txt += `╚══════════════════════╝`
+        txt += `╚══════════════╝`
         let todos = diasConData.flatMap(d => sorteos[chatId][d]).map(n => n + '@s.whatsapp.net')
         return conn.reply(m.chat, txt, m, { mentions: [...new Set(todos)] })
     }
