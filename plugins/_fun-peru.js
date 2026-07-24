@@ -58,7 +58,7 @@ let handler = async (m, { conn, command, text }) => {
     return m.reply(`✊✋✌️ *PIEDRA PAPEL O TIJERA*\n\nYo saqué: *${bot}*\nUsa.piedra.papel o.tijera para jugar`)
   }
 
-  if(command == 'dado') {
+  if(command == 'dado1') {
     return m.reply(`🎲 *LANZASTE EL DADO*\n\n*${name}* sacó: *${Math.floor(Math.random()*6)+1}*`)
   }
 
@@ -105,10 +105,10 @@ handler.help = [
   'calato', 'calata', 'cucufato', 'cucufata', 'chancho', 'chancha', 'pobre', 'rico', 'rica', 'mufa',
   'amor', 'enamorado', 'enamorada', 'fiel', 'infiel', 'romantico', 'romantica', 'celoso', 'celosa', 'casadero', 'casadera',
   'calenton', 'calentona', 'ninfomano', 'ninfomana', 'cachero', 'cauchera', 'tragasables', 'mamador', 'semen', 'semental',
-  'ppt', 'dado', 'ruleta', 'ahorcado', 'adivina', 'mentira', 'tragamonedas', 'reto', 'verdad'
+  'ppt', 'dado1', 'ruleta', 'ahorcado', 'adivina', 'mentira', 'tragamonedas', 'reto', 'verdad'
 ].map((v) => v + " *@user*")
 
 handler.tags = ['scanner', 'juegos']
-handler.command = /^(calato|calata|cucufato|cucufata|chancho|chancha|pobre|rico|rica|mufa|amor|enamorado|enamorada|fiel|infiel|romantico|romantica|celoso|celosa|casadero|casadera|calenton|calentona|ninfomano|ninfomana|cachero|cauchera|tragasables|mamador|semen|semental|ppt|dado|ruleta|ahorcado|adivina|mentira|tragamonedas|reto|verdad)$/i
+handler.command = /^(calato|calata|cucufato|cucufata|chancho|chancha|pobre|rico|rica|mufa|amor|enamorado|enamorada|fiel|infiel|romantico|romantica|celoso|celosa|casadero|casadera|calenton|calentona|ninfomano|ninfomana|cachero|cauchera|tragasables|mamador|semen|semental|ppt|dado1|ruleta|ahorcado|adivina|mentira|tragamonedas|reto|verdad)$/i
 
 export default handler
