@@ -80,50 +80,40 @@ ${BOX_BOT}`)
   if (!buffer) return m.reply('❌ Error al descargar')
 
   try {
-    // PASO 1: DETECTAR
-    let msg = await conn.reply(m.chat, `${BOX_TOP}
+    // 1. DETECTAR
+    await m.reply(`${BOX_TOP}
 ${BOX_MID} 🔍 *Detectando canción...*
 ${BOX_MID} ⏳ Procesando ${CLIP_SECONDS}s de audio
-${BOX_BOT}`, m)
+${BOX_BOT}`)
 
     let clip = await prepareClip(buffer, CLIP_SECONDS)
     let url = await uploadUguu(clip)
     let song = await recognizeUrl(url)
     let searchQuery = `${song.title} ${song.artist}`.replace(/\[.*?\]|\(feat.*?\)/gi, '').trim()
 
-    await conn.editMessage(msg.key, `${BOX_TOP}
-${BOX_MID} ✅ *Canción encontrada*
-${BOX_MID} 🎶 *Título:* ${song.title}
-${BOX_MID} 👤 *Artista:* ${song.artist}
-${BOX_BOT}`)
-
-    await new Promise(r => setTimeout(r, 1500))
+    // 2. BUSCAR Y DESCARGAR
     await m.react('📥')
-
-    // PASO 2: DESCARGAR
-    await conn.editMessage(msg.key, `${BOX_TOP}
-${BOX_MID} 📥 *Descargando de YouTube...*
-${BOX_MID} 🔎 Buscando: ${searchQuery}
-${BOX_BOT}`)
-
     let vid = await searchYT(searchQuery)
     let audio = await downloadEvoGB(vid.url)
     let audioBuffer = await (await fetch(audio.downloadUrl)).buffer()
 
-    // PASO 3: ENVIAR RESULTADO FINAL
-    await conn.editMessage(msg.key, `${BOX_TOP}
-${BOX_MID} ✅ *Descarga completada*
+    // 3. ENVIAR 1 SOLO MENSAJE + AUDIO
+    let texto = `${BOX_TOP}
+${BOX_MID} ✅ *Canción encontrada y enviando audio*
+${BOX_MID}
 ${BOX_MID} 🎶 *Título:* ${song.title}
 ${BOX_MID} 👤 *Artista:* ${song.artist}
 ${BOX_MID} ⏱️ *Duración:* ${vid.timestamp}
-${BOX_MID} 👁️ *Vistas:* ${vid.views.toLocaleString()}
-${BOX_BOT}`)
+${BOX_BOT}`
+
+    await conn.sendMessage(m.chat, { text: texto }, { quoted: m })
 
     await conn.sendMessage(m.chat, {
       audio: audioBuffer,
       mimetype: 'audio/mpeg',
       fileName: `${song.title}.mp3`
     }, { quoted: m })
+
     await m.react('✅')
 
   } catch(e) {
