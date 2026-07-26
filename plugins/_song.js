@@ -1,4 +1,4 @@
-// Desarrollado por Ander + Ander
+// Desarrollado por Ander + Cyber Bot
 import fetch from 'node-fetch'
 import { FormData, Blob } from 'formdata-node'
 import { fileTypeFromBuffer } from 'file-type'
@@ -7,23 +7,20 @@ import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
+import yts from 'yt-search' // npm i yt-search
 
-/* ====== SONGFINDER SCRAPER ====== */
+/* ====== CONFIG ====== */
+const keySasuke = 'sasuke' // KEY para YT y Spotify
 const SONGFINDER_API = 'https://songfinder.gg/api/recognize/url'
 const UGUU_UPLOAD = 'https://uguu.se/upload'
 const CLIP_SECONDS = 30
 
-const SF_HEADERS = {
-  accept: '*/*', 'content-type': 'application/json',
-  origin: 'https://songfinder.gg', referer: 'https://songfinder.gg/',
-  'user-agent': 'Mozilla/5.0'
-}
-function makeToken() { return crypto.randomBytes(24).toString('base64url') }
-
+/* ====== SONGFINDER ====== */
 async function recognizeUrl(audioUrl) {
   const res = await fetch(SONGFINDER_API, {
-    method: 'POST', headers: SF_HEADERS,
-    body: JSON.stringify({ url: audioUrl, startTime: 0, recaptchaToken: makeToken() })
+    method: 'POST',
+    headers: {'content-type': 'application/json', 'origin': 'https://songfinder.gg'},
+    body: JSON.stringify({ url: audioUrl, startTime: 0, recaptchaToken: crypto.randomBytes(24).toString('base64url') })
   })
   const json = await res.json()
   if (!json?.success ||!json?.track) throw new Error('No se encontró la canción')
@@ -36,8 +33,7 @@ async function uploadUguu(buffer) {
   const form = new FormData()
   form.append('files[]', blob, crypto.randomBytes(5).toString('hex') + '.' + ext)
   const res = await fetch(UGUU_UPLOAD, { method: 'POST', body: form })
-  const json = await res.json()
-  return json?.files?.[0]?.url
+  return (await res.json())?.files?.[0]?.url
 }
 
 function prepareClip(buffer, seconds = CLIP_SECONDS) {
@@ -51,110 +47,74 @@ function prepareClip(buffer, seconds = CLIP_SECONDS) {
   })
 }
 
-/* ====== DLSRV YT SCRAPER TUYO ====== */
-const API_BASE = 'https://embed.dlsrv.online'
-const YT_SEARCH_API = 'https://api.darrell-bots.com/api/search/youtube' // Para buscar por nombre
-const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-const AUDIO_QUALITY = '128'
-
-function apiHeaders(videoId) {
-  return {
-    accept: '*/*', 'accept-language': 'es-419,es;q=0.9',
-    'content-type': 'application/json', origin: API_BASE,
-    referer: `${API_BASE}/v2/full?videoId=${videoId}`, 'user-agent': USER_AGENT
-  }
-}
-
-async function getInfo(videoId) {
-  const res = await fetch(`${API_BASE}/api/info`, {
-    method: 'POST', headers: apiHeaders(videoId),
-    body: JSON.stringify({ videoId })
-  })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const data = await res.json()
-  if (data.status!== 'info' ||!data.info) throw new Error('No se pudo obtener info')
-  return {
-    title: data.info.title || 'YouTube',
-    author: data.info.author || '',
-    duration: Number(data.info.duration) || 0,
-    thumbnail: data.info.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-  }
-}
-
-async function getDownload(videoId, format, quality) {
-  const res = await fetch(`${API_BASE}/api/download/${format}`, {
-    method: 'POST', headers: apiHeaders(videoId),
-    body: JSON.stringify({ videoId, format, quality: String(quality) })
-  })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const data = await res.json()
-  if (data.status!== 'tunnel' ||!data.url) throw new Error('No se pudo generar link')
-  return { url: data.url, filename: data.filename || '' }
-}
-
+/* ====== EVOGB PLAY ====== */
 async function searchYT(query) {
-  const res = await fetch(`${YT_SEARCH_API}?query=${encodeURIComponent(query)}`)
-  const json = await res.json()
-  return json.data[0] // primer resultado
+  let res = await yts(query)
+  let vid = res.videos[0]
+  if (!vid) throw new Error('No se encontró en YouTube')
+  return vid
 }
 
-async function getAudioFromYT(url) {
-  const videoId = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/)?.[1]
-  if (!videoId) throw new Error('YT ID inválido')
-  const info = await getInfo(videoId)
-  const tunnel = await getDownload(videoId, 'mp3', AUDIO_QUALITY)
-  return {...info, downloadUrl: tunnel.url, filename: tunnel.filename }
+async function downloadEvoGB(url) {
+  let apiUrl = `https://api.evogb.org/dl/ytmp3?url=${encodeURIComponent(url)}&key=${keySasuke}`
+  let json = await (await fetch(apiUrl)).json()
+  if (!json.status) throw new Error('EvoGB falló: ' + json.message)
+  return {
+    title: json.data.title,
+    downloadUrl: json.data.dl,
+    thumbnail: json.data.thumbnail
+  }
 }
 
-function formatDuration(seconds) {
-  const s = Math.floor(seconds || 0)
-  const min = Math.floor((s % 3600) / 60)
-  const sec = s % 60
-  return `${min}:${String(sec).padStart(2, '0')}`
-}
-
-/* ====== HANDLER ====== */
+/* ====== HANDLER.SONG ====== */
 let handler = async (m, { conn }) => {
   let q = m.quoted? m.quoted : m
   let mime = (q.msg || q).mimetype || ''
-  if (!mime ||!/audio|video/.test(mime)) return m.reply(`🎵 *BUSCADOR SONG*\n\nResponde a un audio/video con.song`)
+  if (!mime ||!/audio|video/.test(mime)) return m.reply(`🎵 *CYBER SONG*\n\nResponde a un audio/video con.song`)
 
   await m.react('🔍')
   let buffer = await q.download()
   if (!buffer) return m.reply('❌ Error al descargar')
 
   try {
-    // PASO 1: DETECTAR CON SONGFINDER
+    // 1. DETECTAR CON SONGFINDER
+    await m.reply(`⏳ Detectando canción...`)
     let clip = await prepareClip(buffer, CLIP_SECONDS)
     let url = await uploadUguu(clip)
     let song = await recognizeUrl(url)
+    let searchQuery = `${song.title} ${song.artist}`.replace(/\[.*?\]|\(feat.*?\)/gi, '').trim()
 
-    await m.reply(`✅ *Encontrado:* \n*${song.title}*\n*${song.artist}*\n\nBuscando en YouTube...`)
+    await m.reply(`✅ *Encontrado:* \n*${song.title}*\n*${song.artist}*\n\n⏳ Buscando en YouTube con EvoGB...`)
     await m.react('📥')
 
-    // PASO 2: BUSCAR EN YT Y DESCARGAR CON TU SCRAPER
-    let yt = await searchYT(`${song.title} ${song.artist}`)
-    let audio = await getAudioFromYT(yt.url)
-    let audioRes = await fetch(audio.downloadUrl)
-    let audioBuffer = await audioRes.buffer()
+    // 2. BUSCAR Y DESCARGAR CON EVOGB
+    let vid = await searchYT(searchQuery)
+    let audio = await downloadEvoGB(vid.url)
+    let audioBuffer = await (await fetch(audio.downloadUrl)).buffer()
 
-    // PASO 3: ENVIAR
+    // 3. ENVIAR
+    let cap = `╭─❒ *『 𝗖𝗬𝗕𝗘𝗥 𝗕𝗢𝗧 』* ❒
+│ ⚡ *YOUTUBE AUDIO*
+│
+│ 📌 *Título:* ${song.title}
+│ 👤 *Artista:* ${song.artist}
+│ 🔍 *Encontrado por:* SongFinder
+│
+│ > *“Descarga procesada por Cyber Bot AI”*
+╰─────────────────❒`
+
+    await conn.sendMessage(m.chat, { image: { url: vid.thumbnail }, caption: cap }, { quoted: m })
     await conn.sendMessage(m.chat, {
       audio: audioBuffer,
       mimetype: 'audio/mpeg',
-      fileName: `${audio.title}.mp3`
-    }, { quoted: m })
-
-    await conn.sendMessage(m.chat, {
-      image: { url: audio.thumbnail },
-      caption: `🎶 *${audio.title}*\n*Artista:* ${audio.author}\n*Duración:* ${formatDuration(audio.duration)}`
+      fileName: `${song.title}.mp3`
     }, { quoted: m })
 
     await m.react('✅')
 
   } catch(e) {
     await m.react('❌')
-    m.reply(`❌ Error: ${e.message}`)
+    m.reply(`❌ *ERROR*\n${e.message}`)
   }
 }
 
