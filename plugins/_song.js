@@ -1,4 +1,4 @@
-// Desarrollado por Ander
+// Desarrollado por Ander + Ander
 import fetch from 'node-fetch'
 import { FormData, Blob } from 'formdata-node'
 import { fileTypeFromBuffer } from 'file-type'
@@ -8,36 +8,25 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 
+/* ====== SONGFINDER SCRAPER ====== */
 const SONGFINDER_API = 'https://songfinder.gg/api/recognize/url'
 const UGUU_UPLOAD = 'https://uguu.se/upload'
 const CLIP_SECONDS = 30
-const MAX_INPUT_BYTES = 60 * 1024 * 1024
-const PREVIEW_SECONDS = 15 // Duración del preview que mandará
 
 const SF_HEADERS = {
-  accept: '*/*',
-  'accept-language': 'es-419,es;q=0.9',
-  'content-type': 'application/json',
-  origin: 'https://songfinder.gg',
-  referer: 'https://songfinder.gg/',
-  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+  accept: '*/*', 'content-type': 'application/json',
+  origin: 'https://songfinder.gg', referer: 'https://songfinder.gg/',
+  'user-agent': 'Mozilla/5.0'
 }
+function makeToken() { return crypto.randomBytes(24).toString('base64url') }
 
-function makeToken() {
-  return crypto.randomBytes(24).toString('base64url')
-}
-
-async function recognizeUrl(audioUrl, startTime = 0) {
+async function recognizeUrl(audioUrl) {
   const res = await fetch(SONGFINDER_API, {
-    method: 'POST',
-    headers: SF_HEADERS,
-    body: JSON.stringify({ url: audioUrl, startTime, recaptchaToken: makeToken() })
+    method: 'POST', headers: SF_HEADERS,
+    body: JSON.stringify({ url: audioUrl, startTime: 0, recaptchaToken: makeToken() })
   })
-  const texto = await res.text()
-  let json = null
-  try { json = JSON.parse(texto) } catch {}
-  if (!res.ok) throw new Error(`SongFinder HTTP ${res.status}`)
-  if (!json?.success || !json?.track) throw new Error(json?.message || 'No se encontró')
+  const json = await res.json()
+  if (!json?.success ||!json?.track) throw new Error('No se encontró la canción')
   return json.track
 }
 
@@ -48,95 +37,124 @@ async function uploadUguu(buffer) {
   form.append('files[]', blob, crypto.randomBytes(5).toString('hex') + '.' + ext)
   const res = await fetch(UGUU_UPLOAD, { method: 'POST', body: form })
   const json = await res.json()
-  const url = json?.files?.[0]?.url
-  if (!url) throw new Error('uguu.se falló')
-  return url
+  return json?.files?.[0]?.url
 }
 
 function prepareClip(buffer, seconds = CLIP_SECONDS) {
   return new Promise(resolve => {
     const tmpIn = path.join(os.tmpdir(), `sf_${Date.now()}`)
-    try { fs.writeFileSync(tmpIn, buffer) } catch { return resolve(buffer) }
-    const ff = spawn('ffmpeg', [
-      '-hide_banner', '-loglevel', 'error',
-      '-i', tmpIn, '-t', String(seconds),
-      '-vn', '-acodec', 'libmp3lame', '-ar', '44100', '-ac', '2', '-b:a', '128k',
-      '-f', 'mp3', 'pipe:1'
-    ])
+    fs.writeFileSync(tmpIn, buffer)
+    const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-i', tmpIn, '-t', String(seconds), '-vn', '-acodec', 'libmp3lame', '-ar', '44100', '-ac', '2', '-b:a', '128k', '-f', 'mp3', 'pipe:1'])
     const chunks = []
     ff.stdout.on('data', c => chunks.push(c))
     ff.on('close', () => { try{fs.unlinkSync(tmpIn)}catch{}; resolve(chunks.length? Buffer.concat(chunks) : buffer) })
   })
 }
 
-function cutPreview(buffer, seconds = PREVIEW_SECONDS) {
-  return new Promise(resolve => {
-    const tmpIn = path.join(os.tmpdir(), `prev_${Date.now()}`)
-    const tmpOut = path.join(os.tmpdir(), `prev_out_${Date.now()}.mp3`)
-    fs.writeFileSync(tmpIn, buffer)
-    const ff = spawn('ffmpeg', [
-      '-hide_banner', '-loglevel', 'error',
-      '-i', tmpIn, '-t', String(seconds),
-      '-acodec', 'libmp3lame', '-ar', '44100', '-ac', '2', '-b:a', '128k',
-      tmpOut
-    ])
-    ff.on('close', () => { 
-      try{fs.unlinkSync(tmpIn)}catch{}
-      try{
-        const out = fs.readFileSync(tmpOut)
-        fs.unlinkSync(tmpOut)
-        resolve(out)
-      }catch{ resolve(null) }
-    })
+/* ====== DLSRV YT SCRAPER TUYO ====== */
+const API_BASE = 'https://embed.dlsrv.online'
+const YT_SEARCH_API = 'https://api.darrell-bots.com/api/search/youtube' // Para buscar por nombre
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+const AUDIO_QUALITY = '128'
+
+function apiHeaders(videoId) {
+  return {
+    accept: '*/*', 'accept-language': 'es-419,es;q=0.9',
+    'content-type': 'application/json', origin: API_BASE,
+    referer: `${API_BASE}/v2/full?videoId=${videoId}`, 'user-agent': USER_AGENT
+  }
+}
+
+async function getInfo(videoId) {
+  const res = await fetch(`${API_BASE}/api/info`, {
+    method: 'POST', headers: apiHeaders(videoId),
+    body: JSON.stringify({ videoId })
   })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const data = await res.json()
+  if (data.status!== 'info' ||!data.info) throw new Error('No se pudo obtener info')
+  return {
+    title: data.info.title || 'YouTube',
+    author: data.info.author || '',
+    duration: Number(data.info.duration) || 0,
+    thumbnail: data.info.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+  }
 }
 
-async function identifySong(buffer) {
-  if (!Buffer.isBuffer(buffer)) throw new Error('Se esperaba un Buffer')
-  if (buffer.length > MAX_INPUT_BYTES) throw new Error('Archivo muy grande')
-  const clip = await prepareClip(buffer, CLIP_SECONDS)
-  const url = await uploadUguu(clip)
-  const track = await recognizeUrl(url)
-  const preview = await cutPreview(clip, PREVIEW_SECONDS) // Cortamos 15s del mismo clip
-  return { ...track, sourceUrl: url, preview }
+async function getDownload(videoId, format, quality) {
+  const res = await fetch(`${API_BASE}/api/download/${format}`, {
+    method: 'POST', headers: apiHeaders(videoId),
+    body: JSON.stringify({ videoId, format, quality: String(quality) })
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const data = await res.json()
+  if (data.status!== 'tunnel' ||!data.url) throw new Error('No se pudo generar link')
+  return { url: data.url, filename: data.filename || '' }
 }
 
-// ===== HANDLER =====
+async function searchYT(query) {
+  const res = await fetch(`${YT_SEARCH_API}?query=${encodeURIComponent(query)}`)
+  const json = await res.json()
+  return json.data[0] // primer resultado
+}
+
+async function getAudioFromYT(url) {
+  const videoId = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/)?.[1]
+  if (!videoId) throw new Error('YT ID inválido')
+  const info = await getInfo(videoId)
+  const tunnel = await getDownload(videoId, 'mp3', AUDIO_QUALITY)
+  return {...info, downloadUrl: tunnel.url, filename: tunnel.filename }
+}
+
+function formatDuration(seconds) {
+  const s = Math.floor(seconds || 0)
+  const min = Math.floor((s % 3600) / 60)
+  const sec = s % 60
+  return `${min}:${String(sec).padStart(2, '0')}`
+}
+
+/* ====== HANDLER ====== */
 let handler = async (m, { conn }) => {
-  let q = m.quoted ? m.quoted : m
+  let q = m.quoted? m.quoted : m
   let mime = (q.msg || q).mimetype || ''
-  if (!mime || !/audio|video/.test(mime)) return m.reply(`🎵 Responde a un audio/video con .song`)
+  if (!mime ||!/audio|video/.test(mime)) return m.reply(`🎵 *BUSCADOR SONG*\n\nResponde a un audio/video con.song`)
 
   await m.react('🔍')
   let buffer = await q.download()
   if (!buffer) return m.reply('❌ Error al descargar')
 
   try {
-    let song = await identifySong(buffer)
+    // PASO 1: DETECTAR CON SONGFINDER
+    let clip = await prepareClip(buffer, CLIP_SECONDS)
+    let url = await uploadUguu(clip)
+    let song = await recognizeUrl(url)
+
+    await m.reply(`✅ *Encontrado:* \n*${song.title}*\n*${song.artist}*\n\nBuscando en YouTube...`)
+    await m.react('📥')
+
+    // PASO 2: BUSCAR EN YT Y DESCARGAR CON TU SCRAPER
+    let yt = await searchYT(`${song.title} ${song.artist}`)
+    let audio = await getAudioFromYT(yt.url)
+    let audioRes = await fetch(audio.downloadUrl)
+    let audioBuffer = await audioRes.buffer()
+
+    // PASO 3: ENVIAR
+    await conn.sendMessage(m.chat, {
+      audio: audioBuffer,
+      mimetype: 'audio/mpeg',
+      fileName: `${audio.title}.mp3`
+    }, { quoted: m })
+
+    await conn.sendMessage(m.chat, {
+      image: { url: audio.thumbnail },
+      caption: `🎶 *${audio.title}*\n*Artista:* ${audio.author}\n*Duración:* ${formatDuration(audio.duration)}`
+    }, { quoted: m })
+
     await m.react('✅')
-
-    let txt = `🎶 *ENCONTRADO* 🎶\n\n*${song.title}*\n*${song.artist}*`
-    if(song.album) txt += `\n*Álbum:* ${song.album}`
-
-    // Mandar info + portada
-    if(song.coverArt) {
-      await conn.sendMessage(m.chat, { image: { url: song.coverArt }, caption: txt }, { quoted: m })
-    } else {
-      await conn.reply(m.chat, txt, m)
-    }
-
-    // Mandar preview de 15s
-    if(song.preview) {
-      await conn.sendMessage(m.chat, { 
-        audio: song.preview, 
-        mimetype: 'audio/mpeg',
-        ptt: false // false = nota de voz normal, true = nota de voz circular
-      }, { quoted: m })
-    }
 
   } catch(e) {
     await m.react('❌')
-    m.reply(`❌ No se encontró\n*Error:* ${e.message}`)
+    m.reply(`❌ Error: ${e.message}`)
   }
 }
 
