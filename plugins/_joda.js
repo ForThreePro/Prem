@@ -1,0 +1,348 @@
+let handler = async (m, { conn, command }) => {
+let quien = m.mentionedJid[0]? m.mentionedJid[0] : m.sender
+let nombre = '@' + quien.split('@')[0]
+let num = Math.floor(Math.random() * 101)
+
+let getTexto = (arr, n) => {
+if (n < 25) return arr[Math.floor(Math.random()*10)]
+if (n < 50) return arr[10 + Math.floor(Math.random()*10)]
+if (n < 75) return arr[20 + Math.floor(Math.random()*10)]
+return arr[30 + Math.floor(Math.random()*10)]
+}
+
+let data = {
+borracho: [
+`${nombre} tiene ${num}% 🍻 Apenas se tomó una chela y ya está diciendo "yo manejo". Responsable nivel Dios.`,
+`${nombre} con ${num}% 🍺 Solo vino por el pollo pero no tomó nada. Hasta manejó sobrio. Un ejemplo.`,
+`${nombre} está ${num}% 🥤 Alérgico al alcohol. Con una gaseosa ya está. Sano sano.`,
+`${nombre}: ${num}% 😇 Fue a la fiesta y se quedó en una esquina con su Inca Kola. Nadie lo emborracha.`,
+`${nombre} ${num}% 🍻 Cero trago. Si le ofrecen pisco dice que le hace daño. Niño bueno.`,
+`${nombre} tiene ${num}% 🧃 Tomó juguito nomás. A las 10pm ya estaba en su casa viendo tele.`,
+`${nombre} con ${num}% 😌 Ni el olor del trago le gusta. Se cuida demasiado.`,
+`${nombre} está ${num}% 🚫 Alcohol? Ni en fotos. El más sano del grupo.`,
+`${nombre}: ${num}% 🥛 Leche en vez de cerveza. Así no se puede.`,
+`${nombre} ${num}% 🍵 Tomó agüita de manzanilla. Está más sano que todos.`,
+
+`${nombre} tiene ${num}% 🍻 Ya se tomó 2 chelas. Está alegre pero todavía coordina.`,
+`${nombre} con ${num}% 🥴 Calentando motores. Cuenta chistes malos pero se ríe solo.`,
+`${nombre} está ${num}% 🍺 Socializando. Ya se sabe el nombre de todos en la fiesta.`,
+`${nombre}: ${num}% 😄 Risa fácil. Todo le da risa. Hasta se ríe de sus propios chistes.`,
+`${nombre} ${num}% 🍻 Pide otra caja. Dice que "recién estamos empezando" a las 9pm.`,
+`${nombre} tiene ${num}% 🎤 Ya agarró el micro. Va a cantar reggaeton desafinado.`,
+`${nombre} con ${num}% 💃 Bailando solo. Nadie lo sacó pero él está en su mundo.`,
+`${nombre} está ${num}% 📱 Sacando fotos a todos. Mañana se va a arrepentir.`,
+`${nombre}: ${num}% 🗣️ Hablador. Cuenta historias que nadie pidió.`,
+`${nombre} ${num}% 🍻 "Una más y me voy" lleva 3 horas diciendo lo mismo.`,
+
+`${nombre} tiene ${num}% 🥴 Ya está mareado. Caminando chueco y abrazando a todos.`,
+`${nombre} con ${num}% 😭 Se puso sentimental. "Ustedes son mi familia" a desconocidos.`,
+`${nombre} está ${num}% 🤙 Mandando audios de 5 minutos a las 3am.`,
+`${nombre}: ${num}% 💔 Llora por su ex que ni conoce. Pide consejo borracho.`,
+`${nombre} ${num}% 🍺 Se peleó con la silla. La silla ganó.`,
+`${nombre} tiene ${num}% 🚕 Pidiendo taxi pero no sabe a donde vive.`,
+`${nombre} con ${num}% 🎤 Karaoke forzado. Canta "Gasolina" 4 veces.`,
+`${nombre} está ${num}% 📞 Llamando a su ex. Bloqueen su cel ya.`,
+`${nombre}: ${num}% 🍻 Vomita y sigue tomando. Nivel leyenda.`,
+`${nombre} ${num}% 🥴 Se perdió en el baño 20 minutos. Lo encontraron dormido.`,
+
+`${nombre} tiene ${num}% 🤮 En coma etílico. Llévenlo a la clínica ya.`,
+`${nombre} con ${num}% 😵 Desaparecido. Nadie sabe donde está desde hace 2 horas.`,
+`${nombre} está ${num}% 🍻 Abrazando el inodoro como si fuera su novia.`,
+`${nombre}: ${num}% 📵 Perdió el celular, la billetera y la dignidad.`,
+`${nombre} ${num}% 🥾 Sin un zapato. El otro lo tiene en la mano.`,
+`${nombre} tiene ${num}% 🎤 Gritando canciones a las 4am. Los vecinos odian.`,
+`${nombre} con ${num}% 🚨 Modo avión activado. No responde a nadie.`,
+`${nombre} está ${num}% 🏥 Hay que cargarlo entre 4. No se sostiene.`,
+`${nombre}: ${num}% 💀 Literalmente tirado. Échenle agua.`,
+`${nombre} ${num}% 🍻 El récord de borracho del grupo. Un crack.`
+],
+
+sonso: [
+`${nombre} tiene ${num}% 🤡 IQ 200. Resuelve cubo rubik con los ojos cerrados. Un genio.`,
+`${nombre} con ${num}% 🧠 Vivo vivo. A él no lo estafan ni en broma.`,
+`${nombre} está ${num}% 🎓 Aprobado con 20. Entiende todo a la primera.`,
+`${nombre}: ${num}% 📊 Estratega. Planea todo 5 pasos adelante.`,
+`${nombre} ${num}% 💻 Hacker. Te hackea la compu mientras duermes.`,
+`${nombre} tiene ${num}% 🚀 NASA lo quiere contratar. Está muy pro.`,
+`${nombre} con ${num}% 📚 Lee 3 libros al día. Sabe de todo.`,
+`${nombre} está ${num}% 🧮 Calculadora humana. Hace raíces cuadradas mental.`,
+`${nombre}: ${num}% 🎯 Le atina a todo. Nada se le escapa.`,
+`${nombre} ${num}% 👨‍💼 CEO. Tiene 5 empresas y 2 doctorados.`,
+
+`${nombre} tiene ${num}% 🤓 Normalazo. Ni muy vivo ni muy sonso. Promedio.`,
+`${nombre} con ${num}% 📝 Zafa los exámenes estudiando 1 noche antes.`,
+`${nombre} está ${num}% 😐 Se salva raspando. Con 11 nomás.`,
+`${nombre}: ${num}% 📺 Ve tutoriales de YouTube para aprender.`,
+`${nombre} ${num}% 🧠 Piensa 5 minutos antes de responder.`,
+`${nombre} tiene ${num}% 📖 Lee el manual antes de usar algo. Responsable.`,
+`${nombre} con ${num}% 🤔 Analiza todo demasiado. Overthinking.`,
+`${nombre} está ${num}% 😅 A veces se olvida las cosas pero zafa.`,
+`${nombre}: ${num}% 📱 Busca en Google antes de opinar.`,
+`${nombre} ${num}% 🛠️ Si se malogra algo llama a un técnico.`,
+
+`${nombre} tiene ${num}% 🤦 Cabeza dura. Le explicas 10 veces y nada.`,
+`${nombre} con ${num}% 😵 Se confía y lo estafan con 2 soles.`,
+`${nombre} está ${num}% 📉 Jala cursos cada ciclo. Sufrido.`,
+`${nombre}: ${num}% 🐑 Cae en todo. "Inversión" de 100 soles perdidos.`,
+`${nombre} ${num}% 🤡 Le venden agua como "agua premium".`,
+`${nombre} tiene ${num}% 🧱 Distraído nivel. Se olvida las llaves en la puerta.`,
+`${nombre} con ${num}% 📞 Marca mal el número y se queja.`,
+`${nombre} está ${num}% 🥴 Palo total. No entiende ni con dibujos.`,
+`${nombre}: ${num}% 🤨 Sospechoso. Algo no cuadra con él.`,
+`${nombre} ${num}% 😶 Se queda callado cuando le preguntan algo fácil.`,
+
+`${nombre} tiene ${num}% 💀 Sonso certificado por el ministerio.`,
+`${nombre} con ${num}% 🏔️ Le vendieron el cerro San Cristóbal.`,
+`${nombre} está ${num}% 📚 Repita año. De nuevo. Por tercera vez.`,
+`${nombre}: ${num}% 🤡 Caso perdido. Ni la NASA lo salva.`,
+`${nombre} ${num}% 🧠 Cero a la izquierda. No suma ni resta.`,
+`${nombre} tiene ${num}% 📉 IQ negativo. Le debe inteligencia al universo.`,
+`${nombre} con ${num}% 🚫 Expulsado del colegio por sonso.`,
+`${nombre} está ${num}% 🐴 Burro nivel. Se tropieza solo.`,
+`${nombre}: ${num}% 📺 Necesita tutorial para prender la tele.`,
+`${nombre} ${num}% 🤦 Ayudín. No puede solo con nada.`
+],
+
+perro: [
+`${nombre} tiene ${num}% 🐶 Fiel como oro. Ni mira a otros.`,
+`${nombre} con ${num}% 🏠 De casa. Solo sale con correa y con dueño.`,
+`${nombre} está ${num}% 🦴 Buen chico. Se porta bien y no rompe nada.`,
+`${nombre}: ${num}% 😴 Dormilón. 20 horas al día durmiendo.`,
+`${nombre} ${num}% ❤️ Cariñoso. Lame a todos y mueve la cola.`,
+`${nombre} tiene ${num}% 🚫 No muerde. Solo da besitos.`,
+`${nombre} con ${num}% 🛏️ Tranquilo. No ladra ni a los rateros.`,
+`${nombre} está ${num}% 🥰 El más buena gente. Todos lo quieren.`,
+`${nombre}: ${num}% 🎾 Juega pero sin destruir. Muy educado.`,
+`${nombre} ${num}% 🏆 Perro ejemplar. Diploma de buena conducta.`,
+
+`${nombre} tiene ${num}% 🐕 Coquetea. Le guiña el ojo a todas las perras.`,
+`${nombre} con ${num}% 🎾 Juguetón. Quiere jugar 24/7.`,
+`${nombre} está ${num}% 🚶 Sale a pasear y huele todo.`,
+`${nombre}: ${num}% 👃 Huele a las chicas cuando pasan.`,
+`${nombre} ${num}% 😏 Travieso. Se escapa al parque solo.`,
+`${nombre} tiene ${num}% 🍖 Pide comida con carita triste.`,
+`${nombre} con ${num}% 🐾 Social. Amigo de todos los perros.`,
+`${nombre} está ${num}% 💘 Loquillo. Se enamora cada semana.`,
+`${nombre}: ${num}% 🏃 Corretea por todo el patio.`,
+`${nombre} ${num}% 🐶 Pide cariño a cada rato.`,
+
+`${nombre} tiene ${num}% 🏃 Se escapa por el techo. Nadie lo para.`,
+`${nombre} con ${num}% 😠 Celoso. Si hablas con otro perro se molesta.`,
+`${nombre} está ${num}% 👃 Huele a todas. No respeta.`,
+`${nombre}: ${num}% 💔 Tóxico. Revisa el cel de la dueña.`,
+`${nombre} ${num}% 🚩 Marca territorio en cada poste.`,
+`${nombre} tiene ${num}% 👑 Dominante. Quiere ser el alfa.`,
+`${nombre} con ${num}% 🐺 Loquillo. Aúlla a la luna.`,
+`${nombre} está ${num}% 🏙️ Callejero. Vive más en la calle que en casa.`,
+`${nombre}: ${num}% 🍖 Roba comida de todos lados.`,
+`${nombre} ${num}% 😈 Hace travesuras y se hace el loco.`,
+
+`${nombre} tiene ${num}% 🐺 Alfa de la manada. Todos le temen.`,
+`${nombre} con ${num}% 👑 Jefe de jauría. Manda a todos los perros.`,
+`${nombre} está ${num}% 🌙 Ladra a la luna toda la noche.`,
+`${nombre}: ${num}% 🔥 Salvaje. Nadie lo puede domar.`,
+`${nombre} ${num}% 💔 Infiel. Tiene 5 novias en diferentes cuadras.`,
+`${nombre} tiene ${num}% 😈 Don Juan. Conquista a todas.`,
+`${nombre} con ${num}% 🐕 Perro bravo. Muerde carteros.`,
+`${nombre} está ${num}% 💥 Terrible. Destruye sillones.`,
+`${nombre}: ${num}% 🍗 Come todo lo que encuentra. Basura incluida.`,
+`${nombre} ${num}% 👑 El rey de la calle. Respeten.`
+],
+
+perra: [
+`${nombre} tiene ${num}% 💅 Tierna. Dulce como azúcar.`,
+`${nombre} con ${num}% 🌸 Bella por dentro y por fuera.`,
+`${nombre} está ${num}% 😺 Gatita. Cariñosa y tranquila.`,
+`${nombre}: ${num}% 👑 Princesa. La tratan como reina.`,
+`${nombre} ${num}% 😇 Angelita. No hace daño a nadie.`,
+`${nombre} tiene ${num}% 💖 Súper sana. Ni un chisme.`,
+`${nombre} con ${num}% 🌼 Inocente. Cree en la gente.`,
+`${nombre} está ${num}% 🥰 Amorosa. Abraza a todos.`,
+`${nombre}: ${num}% ✨ Brilla con luz propia.`,
+`${nombre} ${num}% 👑 Reina pero buena onda.`,
+
+`${nombre} tiene ${num}% 😼 Pícara. Se ríe de todo.`,
+`${nombre} con ${num}% 💋 Coqueta. Le tira miradas a todos.`,
+`${nombre} está ${num}% 🔥 Con actitud. No se deja.`,
+`${nombre}: ${num}% ⚡ Peligrosa. Si la molestas muerde.`,
+`${nombre} ${num}% 🌶️ Picante. Dice lo que piensa.`,
+`${nombre} tiene ${num}% 🦁 Leona. Defiende a los suyos.`,
+`${nombre} con ${num}% 💃 Linda y lo sabe.`,
+`${nombre} está ${num}% 😌 Ok. Ni fu ni fa.`,
+`${nombre}: ${num}% 💅 Distinta. No es como las demás.`,
+`${nombre} ${num}% 🌟 Destaca entre todas.`,
+
+`${nombre} tiene ${num}% 👊 No se deja. Responde al toque.`,
+`${nombre} con ${num}% 🎯 Cazadora. Va por lo que quiere.`,
+`${nombre} está ${num}% 🐅 Tigresa. Fuerte y decidida.`,
+`${nombre}: ${num}% 💎 Bella y valiosa.`,
+`${nombre} ${num}% 👑 Reina. Manda en el grupo.`,
+`${nombre} tiene ${num}% 🌶️ Picante. Nadie la aguanta.`,
+`${nombre} con ${num}% 😈 Maldita. Rompe corazones.`,
+`${nombre} está ${num}% 💪 Fuerte. Sola puede con todo.`,
+`${nombre}: ${num}% 🔥 Intensa. Vive al límite.`,
+`${nombre} ${num}% 👑 Se respeta y punto.`,
+
+`${nombre} tiene ${num}% 💎 Diva suprema. Nivel Beyoncé.`,
+`${nombre} con ${num}% ☠️ Fatal. Donde pisa deja muertos.`,
+`${nombre} está ${num}% 🐆 Pantera. Elegante y peligrosa.`,
+`${nombre}: ${num}% 🧪 Veneno. Te mata con una mirada.`,
+`${nombre} ${num}% 💔 Rompe corazones profesional.`,
+`${nombre} tiene ${num}% 🕷️ Viuda negra. No sobrevives.`,
+`${nombre} con ${num}% 👑 Diosa. Bájale 2 rayitas.`,
+`${nombre} está ${num}% 🚫 Intocable. Nivel diosa griega.`,
+`${nombre}: ${num}% 🔥 Reina suprema del universo.`,
+`${nombre} ${num}% 💅 La más perra y orgullosa.`
+],
+
+sano: [
+`${nombre} tiene ${num}% 😈 Diablo disfrazado de angelito.`,
+`${nombre} con ${num}% 🤥 Falso. Más falso que billete de 3 soles.`,
+`${nombre} está ${num}% 🌑 Turbio. Algo esconde.`,
+`${nombre}: ${num}% 🐍 Mentiroso. Ni él se cree.`,
+`${nombre} ${num}% 🎭 Pura fachada. Por dentro es otra cosa.`,
+`${nombre} tiene ${num}% 😇 Peca los domingos y pide perdón los lunes.`,
+`${nombre} con ${num}% 🙄 Mentira. Todos saben que no es sano.`,
+`${nombre} está ${num}% 💀 Tramposo. Hace trampa hasta en el tazo.`,
+`${nombre}: ${num}% 🎪 Circo. Actúa demasiado.`,
+`${nombre} ${num}% 🐺 Lobo con piel de oveja.`,
+
+`${nombre} tiene ${num}% 🤨 Dudoso. Algo no me cuadra.`,
+`${nombre} con ${num}% ⚖️ A medias. A veces sí a veces no.`,
+`${nombre} está ${num}% 😐 Regular. Ni bueno ni malo.`,
+`${nombre}: ${num}% 😌 Tranqui. No hace bulla.`,
+`${nombre} ${num}% 🙏 A veces peca pero se arrepiente.`,
+`${nombre} tiene ${num}% 📊 Normal. Como todos.`,
+`${nombre} con ${num}% ✅ Decente. Se porta bien.`,
+`${nombre} está ${num}% 😐 Regular. Cumple nomás.`,
+`${nombre}: ${num}% 🤝 Buena gente. No jode a nadie.`,
+`${nombre} ${num}% 📈 Va mejorando. Poco a poco.`,
+
+`${nombre} tiene ${num}% 😇 Se cuida. No toma, no fuma.`,
+`${nombre} con ${num}% 📚 Portándose bien. Ejemplo en casa.`,
+`${nombre} está ${num}% ✅ Sano. Come verduras y hace ejercicio.`,
+`${nombre}: ${num}% 🌟 Decente. Los papás lo quieren.`,
+`${nombre} ${num}% 👍 Correcto. Nunca da problemas.`,
+`${nombre} tiene ${num}% 😌 Ok. Todo bajo control.`,
+`${nombre} con ${num}% 🌼 Bien. Buen hijo, buen amigo.`,
+`${nombre} está ${num}% 📖 Ejemplo. Saquen copia.`,
+`${nombre}: ${num}% 🏆 Buen ciudadano.`,
+`${nombre} ${num}% ✨ Va por buen camino.`,
+
+`${nombre} tiene ${num}% 👼 Ejemplar. Lo ponen de ejemplo en el cole.`,
+`${nombre} con ${num}% 😇 Muy sano. Ni chisme hace.`,
+`${nombre} está ${num}% 🙏 Santo. Casi canonizado.`,
+`${nombre}: ${num}% ✨ Perfecto. Da cólera de lo perfecto.`,
+`${nombre} ${num}% 😇 Cristo. Hace milagros.`,
+`${nombre} tiene ${num}% 👼 Ángel. Tiene alitas.`,
+`${nombre} con ${num}% ⛪ Va a misa 3 veces al día.`,
+`${nombre} está ${num}% 📿 Ora antes de comer.`,
+`${nombre}: ${num}% 🌈 Puro. Como agua de manantial.`,
+`${nombre} ${num}% 👑 El más sano del reino.`
+],
+
+loca: [
+`${nombre} tiene ${num}% 😌 Normal. Centrado y tranquilo.`,
+`${nombre} con ${num}% 🧠 Tierra. Pies en el suelo.`,
+`${nombre} está ${num}% ✅ Cuerda. Todo bajo control.`,
+`${nombre}: ${num}% 👍 Ok. Nada fuera de lo normal.`,
+`${nombre} ${num}% 😊 Bien. Estable emocionalmente.`,
+`${nombre} tiene ${num}% 📊 Sano mentalmente.`,
+`${nombre} con ${num}% 🧘 Medita y hace yoga.`,
+`${nombre} está ${num}% 🌿 Zen. Paz interior.`,
+`${nombre}: ${num}% 📈 Equilibrado.`,
+`${nombre} ${num}% 😇 Sano. Sin locuras.`,
+
+`${nombre} tiene ${num}% 🤪 Rara. Dice cosas raras.`,
+`${nombre} con ${num}% 😅 Distraída. Se olvida donde dejó el cel.`,
+`${nombre} está ${num}% 🌙 Luna. Vive en su mundo.`,
+`${nombre}: ${num}% 😰 Ansioso. Se estresa por todo.`,
+`${nombre} ${num}% 🧩 Un tornillo suelto.`,
+`${nombre} tiene ${num}% 🤔 Rareza. Diferente.`,
+`${nombre} con ${num}% 😶 Distinta. Piensa diferente.`,
+`${nombre} está ${num}% 😐 Piola. Tranquila.`,
+`${nombre}: ${num}% 📱 Vive en TikTok.`,
+`${nombre} ${num}% 😂 Se ríe de cosas random.`,
+
+`${nombre} tiene ${num}% 🤯 Intensa. Todo es drama.`,
+`${nombre} con ${num}% 😂 Se ríe sola en el bus.`,
+`${nombre} está ${num}% 🛸 Marte. No es de este planeta.`,
+`${nombre}: ${num}% 😵 Nervioso. Le tiembla todo.`,
+`${nombre} ${num}% 🧩 Dos tornillos sueltos.`,
+`${nombre} tiene ${num}% 🤪 Rara nivel. Habla sola.`,
+`${nombre} con ${num}% 🎭 Intensa. Actúa su vida.`,
+`${nombre} está ${num}% 😂 Risa nerviosa todo el tiempo.`,
+`${nombre}: ${num}% 📞 Habla con desconocidos.`,
+`${nombre} ${num}% 🌀 En su mundo.`,
+
+`${nombre} tiene ${num}% 🚨 Desquiciada. Llamen a alguien.`,
+`${nombre} con ${num}% 👽 Habla con aliens.`,
+`${nombre} está ${num}% 🪐 Júpiter. Perdida en el espacio.`,
+`${nombre}: ${num}% 🤡 Psicótico. Terapia urgente.`,
+`${nombre} ${num}% 🧩 Se le cayeron todos los tornillos.`,
+`${nombre} tiene ${num}% 🏥 Manicomio. Internamiento ya.`,
+`${nombre} con ${num}% 🚑 Grave. Estado crítico.`,
+`${nombre} está ${num}% 🚨 Urgente. 911.`,
+`${nombre}: ${num}% 🛸 Extraterrestre. No es humano.`,
+`${nombre} ${num}% 🤪 Loca de remate. Certificada.`
+],
+
+so: [
+`${nombre} tiene ${num}% 💍 Casado. Con argolla y todo.`,
+`${nombre} con ${num}% 🔗 Amarrado. No se puede mover.`,
+`${nombre} está ${num}% 👫 Con dueño. Tiene quien lo cuide.`,
+`${nombre}: ${num}% 😍 Enculado. Babeando por alguien.`,
+`${nombre} ${num}% 💒 Matrimonio. Planes de boda.`,
+`${nombre} tiene ${num}% ❤️ Fiel. Ni mira a otros.`,
+`${nombre} con ${num}% 💑 Amor. En su mundo rosa.`,
+`${nombre} está ${num}% 👩‍❤️‍👨 Pareja. Inseparables.`,
+`${nombre}: ${num}% 💌 Cartitas de amor.`,
+`${nombre} ${num}% 🏠 Hogareño. Solo quiere estar con su pareja.`,
+
+`${nombre} tiene ${num}% 💘 Enredado. Algo serio pero no tanto.`,
+`${nombre} con ${num}% 👀 Viéndose. Se ven a escondidas.`,
+`${nombre} está ${num}% 💞 Casi. Falta poco para el sí.`,
+`${nombre}: ${num}% 😏 Coqueteando. Tirando onda.`,
+`${nombre} ${num}% 💕 Fling. Algo casual.`,
+`${nombre} tiene ${num}% 💝 Algo. No es nada pero es algo.`,
+`${nombre} con ${num}% 💬 Casi nada. Hablan nomás.`,
+`${nombre} está ${num}% 📱 Viéndose por WhatsApp.`,
+`${nombre}: ${num}% 💌 Se mandan stickers.`,
+`${nombre} ${num}% 😊 Ilusionado.`,
+
+`${nombre} tiene ${num}% 💔 Libre. Sin compromiso.`,
+`${nombre} con ${num}% 😎 Soltero. Rey sin reina.`,
+`${nombre} está ${num}% 💃 Disponible. Tirando currículum.`,
+`${nombre}: ${num}% 😌 Tranquilx. Solx pero feliz.`,
+`${nombre} ${num}% 🏃 Solo. Corriendo de los problemas.`,
+`${nombre} tiene ${num}% 💁 Libre. Hace lo que quiere.`,
+`${nombre} con ${num}% ✅ Ok. Está bien así.`,
+`${nombre} está ${num}% 😊 Normal. Soltero normal.`,
+`${nombre}: ${num}% 📱 En apps de citas.`,
+`${nombre} ${num}% 🍻 Saliendo con todos.`,
+
+`${nombre} tiene ${num}% 🎯 Cazando. Buscando presa.`,
+`${nombre} con ${num}% 🔍 Buscando. Desesperado.`,
+`${nombre} está ${num}% 💘 Fogueando. Probando opciones.`,
+`${nombre}: ${num}% 🦋 Picaflor. Va de flor en flor.`,
+`${nombre} ${num}% 😩 Desesperado. "Alguien que me quiera".`,
+`${nombre} tiene ${num}% 📲 En Tinder 24/7.`,
+`${nombre} con ${num}% 💬 Coqueteo. Habla con 10 a la vez.`,
+`${nombre} está ${num}% 😏 Flirteo. Profesional.`,
+`${nombre}: ${num}% 🐺 Lobo solitario. Aúlla.`,
+`${nombre} ${num}% 🧊 Hielo. Nadie lo derrite.`,
+`${nombre} tiene ${num}% 💀 SO. Soltero oficial. Para siempre.`
+]
+}
+
+let texto = getTexto(data[command], num)
+let emoji = {borracho:'🍻', sonso:'🤡', perro:'🐶', perra:'💅', sano:'😇', loca:'🤪', so:'💔'}[command]
+
+await conn.reply(m.chat, `*${nombre}* está *${num}%* ${emoji}\n\n${texto}`, m, { mentions: [quien] })
+}
+
+handler.help = ['borracho', 'sonso', 'perro', 'perra', 'sano', 'loca', 'so']
+handler.tags = ['fun']
+handler.command = ['borracho', 'sonso', 'perro', 'perra', 'sano', 'loca', 'so']
+handler.group = true
+export default handler
