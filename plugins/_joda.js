@@ -342,7 +342,7 @@ await conn.reply(m.chat, `*${nombre}* está *${num}%* ${emoji}\n\n${texto}`, m, 
 }
 
 handler.help = ['borracho', 'sonso', 'perro', 'perra', 'sano', 'loca', 'so']
-handler.tags = ['fun']
+handler.tags = ['joda']
 handler.command = ['borracho', 'sonso', 'perro', 'perra', 'sano', 'loca', 'so']
 handler.group = true
 export default handler
