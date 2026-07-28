@@ -98,7 +98,7 @@ let handler = async (m, { conn, command }) => {
 }
 
 handler.help = ['miamor','mibebito','bratz','bellaka','brother','perroinfiel','perro infiel','mentiroso','mentiras','2p2','3p3','duo']
-handler.tags = ['game','fun']
+handler.tags = ['joda']
 handler.command = /^(miamor|mi amor|mibebito|bratz|bellaka|brother|perroinfiel|perro infiel|mentiroso|mentiras|2p2|3p3|duo)$/i
 handler.group = true
 export default handler
